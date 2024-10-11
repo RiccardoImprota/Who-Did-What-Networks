@@ -1,4 +1,19 @@
 
+import spacy
+import subprocess
+
+def install_spacy_model():
+    try:
+        # Check if the model is available, without loading it
+        spacy.util.get_package_path("en_core_web_trf")
+    except:
+        # If the model isn't installed, download it
+        print("Downloading spaCy model 'en_core_web_trf'...")
+        subprocess.run(["python", "-m", "spacy", "download", "en_core_web_trf"])
+
+install_spacy_model()
+
+
 def _valences(language="english"):
 
     if language == "english":
@@ -9,3 +24,20 @@ def _valences(language="english"):
         from valence.italian import _positive, _negative, _ambivalent
 
     return _positive, _negative, _ambivalent
+
+
+_VAGUE_ADVMODS = {'only', 'respectively', 'actually', 'basically', 'generally', 'normally', 'usually', 'approximately', 'roughly', 'virtually', 
+                 'exactly', 'precisely', 'literally', 'effectively', 'essentially','more'}
+
+_VAGUE_AUX = {'be','have','to', 'shall', 'would', 'should','is'}
+
+_VAGUE_ADJ = {
+    "certain", "significant", "some", "various", "several", "numerous", "other", "different", "specific", "typical", "important",
+    "general", "usual", "frequent", "considerable", "sufficient", "major", "relevant", "adequate", "appropriate", "minor",
+    "potential", "many", "few", "particular", "additional", "existing", "regular", "normal", "ordinary", "standard", "common",
+    "average", "basic", "random", "miscellaneous", "diverse", "assorted", "respective", "relative", "suitable", "proper", "given",
+    "multiple", "sundry", "arbitrary", "undefined", "unspecified", "approximate", "estimated", "nominal", "generic", "universal",
+    "conventional", "customary", "moderate", "reasonable", "notable", "substantial", "possible", "probable", "likely", "unlikely",
+    "primary", "secondary", "tertiary", "minimal", "maximal", "optimal", "various", "countless", "innumerable", "limited",
+    "extensive", "abundant", "scarce", "ample", "sparse", "much", "current"
+    }
