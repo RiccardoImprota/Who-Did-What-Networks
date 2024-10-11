@@ -3,9 +3,11 @@ import whodidwhat.WDWplot as WDWplot
 from whodidwhat.resources import _valences, _VAGUE_ADVMODS, _VAGUE_AUX, _VAGUE_ADJ
 import spacy
 import spacy_transformers
+from . import get_spacy_nlp, get_stanza_nlp
+
 
 # Load the spaCy English language model
-nlp = spacy.load('en_core_web_trf')
+nlp = get_spacy_nlp()
 
 
 def extract_svos(doc):
@@ -36,18 +38,18 @@ def get_verb_phrase(verb):
     parts = []
 
     # Get auxiliaries and negations before the verb
-    aux = [child.lemma_ for child in verb.lefts if child.dep_ in {'aux','auxpass','neg'} and child.lemma_ not in VAGUE_AUX]
+    aux = [child.lemma_ for child in verb.lefts if child.dep_ in {'aux','auxpass','neg'} and child.lemma_ not in _VAGUE_AUX]
     parts.extend(aux)
 
 
     ## Get adverbial modifiers before the verb
     #adverbs_before = [child.lemma_ for child in verb.lefts if child.dep_ in {'advmod', 'amod','npadvmod'} and \
-    #                   child.pos_ not in {'SCONJ', 'CCONJ', 'PART', 'DET'} and child.lemma_ not in VAGUE_ADVMODS]
+    #                   child.pos_ not in {'SCONJ', 'CCONJ', 'PART', 'DET'} and child.lemma_ not in _VAGUE_ADVMODS]
     #parts.extend(adverbs_before)
     # Get adverbial before after the verb
     for child in verb.lefts:
         if child.dep_ in {'advmod', 'amod', 'npadvmod'} and\
-            child.pos_ not in {'SCONJ', 'CCONJ', 'PART', 'DET'} and child.lemma_ not in VAGUE_ADVMODS:
+            child.pos_ not in {'SCONJ', 'CCONJ', 'PART', 'DET'} and child.lemma_ not in _VAGUE_ADVMODS:
             # Include the noun and its modifiers
             noun_phrase, prep_phrases = get_compound_parts(child)
             parts.append(noun_phrase)
@@ -67,18 +69,18 @@ def get_verb_phrase(verb):
             for grandchild in child.children:
                 if grandchild.dep_ in {'advmod', 'amod', 'npadvmod'} and\
                     grandchild.pos_ not in {'SCONJ', 'CCONJ', 'PART', 'DET'} and\
-                        grandchild.lemma_ not in VAGUE_ADVMODS:
+                        grandchild.lemma_ not in _VAGUE_ADVMODS:
                     parts.append(grandchild.lemma_)
 
     # Get adverbial modifiers after the verb
     #adverbs_after = [child.lemma_ for child in verb.rights if child.dep_ in {'advmod', 'amod', 'npadvmod'} and\
-    #                  child.pos_ not in {'SCONJ', 'CCONJ', 'PART', 'DET'} and child.lemma_ not in VAGUE_ADVMODS]
+    #                  child.pos_ not in {'SCONJ', 'CCONJ', 'PART', 'DET'} and child.lemma_ not in _VAGUE_ADVMODS]
     #parts.extend(adverbs_after)
     
     # Get adverbial modifiers after the verb
     for child in verb.rights:
         if child.dep_ in {'advmod', 'amod', 'npadvmod'} and\
-            child.pos_ not in {'SCONJ', 'CCONJ', 'PART', 'DET'} and child.lemma_ not in VAGUE_ADVMODS:
+            child.pos_ not in {'SCONJ', 'CCONJ', 'PART', 'DET'} and child.lemma_ not in _VAGUE_ADVMODS:
             # Include the noun and its modifiers
             noun_phrase, prep_phrases = get_compound_parts(child)
             parts.append(noun_phrase)
