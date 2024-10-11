@@ -4,10 +4,11 @@ from whodidwhat.resources import _valences, _VAGUE_ADVMODS, _VAGUE_AUX, _VAGUE_A
 import spacy
 import spacy_transformers
 from . import get_spacy_nlp
+from whodidwhat import _nlp_spacy
 
 
 # Load the spaCy English language model
-nlp = get_spacy_nlp()
+nlp = _nlp_spacy
 
 
 def extract_svos(doc):

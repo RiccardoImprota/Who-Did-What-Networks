@@ -1,6 +1,6 @@
 import stanza
 import re
-from . import get_stanza_nlp
+from whodidwhat import _nlp_stanza
 
 
 
@@ -64,7 +64,7 @@ def solve_coreferences(text, coref_solver='stanza'):
     
     if coref_solver=='stanza':
         # Load the Stanza pipeline
-        stanzanlp = get_stanza_nlp()
+        stanzanlp = _nlp_stanza
         # Process the text
         doc = stanzanlp(text)
         output_text = stanza_solve_coreferences(doc)
