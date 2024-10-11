@@ -3,7 +3,7 @@ import whodidwhat.WDWplot as WDWplot
 from whodidwhat.resources import _valences, _VAGUE_ADVMODS, _VAGUE_AUX, _VAGUE_ADJ
 import spacy
 import spacy_transformers
-from . import get_spacy_nlp, get_stanza_nlp
+from . import get_spacy_nlp
 
 
 # Load the spaCy English language model

@@ -1,8 +1,10 @@
 import stanza
 import re
+from . import get_stanza_nlp
+
 
 # Load the Stanza pipeline
-stanzanlp = stanza.Pipeline(lang='en', processors='tokenize,coref')
+stanzanlp = get_stanza_nlp()
 
 def text_preparation(text,clean=True):
     """
