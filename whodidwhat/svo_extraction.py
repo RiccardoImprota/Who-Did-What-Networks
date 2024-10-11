@@ -1,4 +1,4 @@
-from whodidwhat.textloader import *
+from whodidwhat.textloader import text_preparation
 import whodidwhat.WDWplot as WDWplot
 from whodidwhat.resources import _valences, _VAGUE_ADVMODS, _VAGUE_AUX, _VAGUE_ADJ
 import spacy

@@ -3,8 +3,6 @@ import re
 from . import get_stanza_nlp
 
 
-# Load the Stanza pipeline
-stanzanlp = get_stanza_nlp()
 
 def text_preparation(text,clean=True):
     """
@@ -65,6 +63,8 @@ def solve_coreferences(text, coref_solver='stanza'):
         raise ValueError("Only Stanza coreference solver is supported at the moment.")
     
     if coref_solver=='stanza':
+        # Load the Stanza pipeline
+        stanzanlp = get_stanza_nlp()
         # Process the text
         doc = stanzanlp(text)
         output_text = stanza_solve_coreferences(doc)
