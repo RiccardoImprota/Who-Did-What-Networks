@@ -1,6 +1,6 @@
 from whodidwhat.textloader import text_preparation
-import whodidwhat.WDWplot as WDWplot
-from whodidwhat.resources import _valences, _VAGUE_ADVMODS, _VAGUE_AUX, _VAGUE_ADJ
+from whodidwhat.WDWplot import *
+from whodidwhat.resources import _VAGUE_ADVMODS, _VAGUE_AUX, _VAGUE_ADJ
 import spacy
 import spacy_transformers
 from .nlp_utils import get_spacy_nlp

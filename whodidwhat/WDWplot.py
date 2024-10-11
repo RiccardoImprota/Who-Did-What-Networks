@@ -1,5 +1,6 @@
 import networkx as nx
 import matplotlib.pyplot as plt
+from whodidwhat.resources import _valences
 
 def plot_svo_graph(svo_list, subject_filter=None):
     """
