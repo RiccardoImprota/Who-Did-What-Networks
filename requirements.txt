@@ -3,4 +3,5 @@ networkx
 matplotlib
 spacy_transformers
 stanza
-fastcoref
+peft
+
