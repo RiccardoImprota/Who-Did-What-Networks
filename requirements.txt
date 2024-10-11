@@ -1,6 +1,7 @@
 spacy
 networkx
 matplotlib
+numpy
 spacy_transformers
 stanza
 peft
