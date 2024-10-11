@@ -19,7 +19,7 @@ def spacynlp(text):
     """
     Process the text using the spaCy NLP pipeline.
     """
-    nlp = get_spacy_nlp(text)
+    nlp = get_spacy_nlp()
 
     return nlp(text)
 
