@@ -2,17 +2,6 @@
 import spacy
 import subprocess
 
-def install_spacy_model():
-    try:
-        # Check if the model is available, without loading it
-        spacy.util.get_package_path("en_core_web_trf")
-    except:
-        # If the model isn't installed, download it
-        print("Downloading spaCy model 'en_core_web_trf'...")
-        subprocess.run(["python", "-m", "spacy", "download", "en_core_web_trf"])
-
-install_spacy_model()
-
 
 def _valences(language="english"):
 

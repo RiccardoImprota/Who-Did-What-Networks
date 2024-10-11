@@ -1,6 +1,8 @@
 import stanza
 import re
 
+# Load the Stanza pipeline
+stanzanlp = stanza.Pipeline(lang='en', processors='tokenize,coref')
 
 def text_preparation(text,clean=True):
     """
@@ -12,7 +14,7 @@ def text_preparation(text,clean=True):
     Returns:
     str: The prepared text with coreferences resolved.
     """
-    
+
     # Clean the text
     cleaned_text = clean_text(text)
 
@@ -61,8 +63,6 @@ def solve_coreferences(text, coref_solver='stanza'):
         raise ValueError("Only Stanza coreference solver is supported at the moment.")
     
     if coref_solver=='stanza':
-        # Load the Stanza pipeline
-        stanzanlp = stanza.Pipeline(lang='en', processors='tokenize,coref')
         # Process the text
         doc = stanzanlp(text)
         output_text = stanza_solve_coreferences(doc)
