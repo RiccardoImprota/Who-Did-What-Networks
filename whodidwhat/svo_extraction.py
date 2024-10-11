@@ -6,9 +6,22 @@ import spacy_transformers
 from .nlp_utils import get_spacy_nlp
 
 
-# Load the spaCy English language model
-nlp = get_spacy_nlp()
+def extract_svos_from_text(text):
+    """
+    Extract Subject-Verb-Object (SVO) triples from a given text.
+    """
+    prepared_text = text_preparation(text)
+    doc = spacynlp(prepared_text)
+    svos = extract_svos(doc)
+    return svos
 
+def spacynlp(text):
+    """
+    Process the text using the spaCy NLP pipeline.
+    """
+    nlp = get_spacy_nlp(text)
+
+    return nlp(text)
 
 def extract_svos(doc):
     """
