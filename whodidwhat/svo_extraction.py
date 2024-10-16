@@ -6,6 +6,7 @@ import spacy_transformers
 from .nlp_utils import get_spacy_nlp
 from itertools import combinations, chain
 from nltk.corpus import wordnet as wn
+import pandas as pd
 
 
 def extract_svos_from_text(text):

@@ -16,6 +16,8 @@ def plot_svo_graph(svo_list, subject_filter=None):
     """
     G = svo_to_graph(svo_list, subject_filter)
     plot_graph(G)
+
+    
 def add_node_with_type(G, node_id, label, node_type):
     """
     Add a node to the graph with a specific type.
