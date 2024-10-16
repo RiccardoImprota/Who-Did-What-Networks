@@ -17,7 +17,7 @@ def plot_svo_graph(svo_list, subject_filter=None):
     G = svo_to_graph(svo_list, subject_filter)
     plot_graph(G)
 
-    
+
 def add_node_with_type(G, node_id, label, node_type):
     """
     Add a node to the graph with a specific type.
@@ -31,11 +31,16 @@ def add_node_with_type(G, node_id, label, node_type):
     else:
         G.add_node(node_id, type=set([node_type]), label=label)
         
-def svo_to_graph(df):
+def svo_to_graph(df, subject_filter=None):
     """
     Convert a pandas DataFrame of SVO data into a graph.
+    Optionally filters the data based on the subject_filter.
     """
     G = nx.Graph()
+
+    if subject_filter is not None:
+        # Filter the DataFrame based on the subject_filter
+        df = df[df['Node 1'] == subject_filter]
 
     for index, row in df.iterrows():
         node1 = row['Node 1']
@@ -64,6 +69,7 @@ def svo_to_graph(df):
         G.add_edge(node1_id, node2_id, relation=relation_type, hypergraph=hypergraph)
 
     return G
+
 
 
 
