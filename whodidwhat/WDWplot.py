@@ -39,8 +39,10 @@ def svo_to_graph(df, subject_filter=None):
     G = nx.Graph()
 
     if subject_filter is not None:
-        # Filter the DataFrame based on the subject_filter
-        df = df[df['Node 1'] == subject_filter]
+        # Identify all unique hypergraphs that contain the subject_filter in 'Node 1'
+        relevant_hypergraphs = df.loc[df['Node 1'] == subject_filter, 'Hypergraph'].unique()
+        # Filter the DataFrame to include all rows that are in these hypergraphs
+        df = df[df['Hypergraph'].isin(relevant_hypergraphs)]
 
     for index, row in df.iterrows():
         node1 = row['Node 1']

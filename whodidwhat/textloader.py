@@ -90,9 +90,16 @@ def stanza_solve_coreferences(doc):
     # Dictionary to keep track of active mentions per coreference chain
     active_mentions = {}
 
+    words_to_replace = {
+        'he', 'she', 'they', 'it', 'him', 'her', 'them',
+        'his', 'hers', 'theirs', 'this'
+    }
+
     # Iterate over sentences and words to build mentions
     for sentence in doc.sentences:
         for word in sentence.words:
+            if word.text.lower() not in words_to_replace:
+              continue
             word_start = word.start_char
             word_end = word.end_char
 
