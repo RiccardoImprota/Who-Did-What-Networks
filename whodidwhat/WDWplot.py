@@ -6,25 +6,6 @@ from itertools import combinations, chain
 from nltk.corpus import wordnet as wn
 
 
-def add_node_with_type(G, node_id, label, node_type):
-    """
-    Add a node to the graph with a specific type.
-    If the node already exists, update its type to include the new type.
-
-    Args:
-        G (networkx.Graph): The graph to add the node to.
-        node_id (str): The unique identifier for the node.
-        label (str): The label to display for the node.
-        node_type (str): The type of the node (e.g., 'subject', 'object', 'verb').
-    """
-    if G.has_node(node_id):
-        if 'type' in G.nodes[node_id]:
-            G.nodes[node_id]['type'].add(node_type)
-        else:
-            G.nodes[node_id]['type'] = set([node_type])
-    else:
-        G.add_node(node_id, type=set([node_type]), label=label)
-
 def plot_svo_graph(svo_list, subject_filter=None):
     """
     Plot a graph of the SVO triples with subjects on the left, verbs in the center, and objects on the right.
@@ -35,141 +16,56 @@ def plot_svo_graph(svo_list, subject_filter=None):
     """
     G = svo_to_graph(svo_list, subject_filter)
     plot_graph(G)
-
-def add_synonym_edges(G, node_ids):
+def add_node_with_type(G, node_id, label, node_type):
     """
-    Add synonym edges between nodes in node_ids based on WordNet synonyms.
-    
-    Args:
-        G (networkx.Graph): The graph to add edges to.
-        node_ids (list): List of node identifiers to consider.
+    Add a node to the graph with a specific type.
+    If the node already exists, update its type to include the new type.
     """
-    # Get labels for the nodes
-    labels = {node: G.nodes[node]['label'] for node in node_ids}
-    words = list(set(labels.values()))
-    
-    # Build mapping from word to node ids (in case multiple nodes have the same label)
-    word_to_nodes = {}
-    for node in node_ids:
-        label = labels[node]
-        word_to_nodes.setdefault(label, []).append(node)
-    
-    # Build mapping from word to synonyms
-    synonyms = {}
-    for word in words:
-        synsets = wn.synsets(word)
-        lemmas = set(chain.from_iterable([syn.lemma_names() for syn in synsets]))
-        synonyms[word] = lemmas
-    
-    # Find pairs of words that are synonyms
-    for word1, word2 in combinations(words, 2):
-        if synonyms[word1].intersection(synonyms[word2]):
-            # Add edges between all nodes with word1 and all nodes with word2
-            for node1 in word_to_nodes[word1]:
-                for node2 in word_to_nodes[word2]:
-                    G.add_edge(node1, node2, relation='synonym')
-
-def svo_to_graph(svo_list, subject_filter=None):
+    if G.has_node(node_id):
+        if 'type' in G.nodes[node_id]:
+            G.nodes[node_id]['type'].add(node_type)
+        else:
+            G.nodes[node_id]['type'] = set([node_type])
+    else:
+        G.add_node(node_id, type=set([node_type]), label=label)
+        
+def svo_to_graph(df):
     """
-    Convert a list of SVO tuples into a graph where nodes represent subjects, verbs, and objects,
-    and edges represent the relationships between them. Also adds synonym edges between subjects
-    and between objects based on WordNet synonyms.
-
-    Args:
-        svo_list (list): A list of SVO tuples extracted from sentences.
-        subject_filter (str, optional): If provided, only include sentences with this subject.
-
-    Returns:
-        networkx.Graph: The constructed graph.
+    Convert a pandas DataFrame of SVO data into a graph.
     """
     G = nx.Graph()
-    for svo in svo_list:
-        subjects, verbs, objects = svo
 
-        # Check if the specified subject is in the subjects list
-        subject_names = [subj for subj, _ in subjects]
-        if subject_filter is not None:
-            subjects = [(subj, preps) for subj, preps in subjects if subj == subject_filter]
-        if subject_filter is not None and subject_filter not in subject_names:
-            continue
+    for index, row in df.iterrows():
+        node1 = row['Node 1']
+        wdw1 = row['WDW']
+        node2 = row['Node 2']
+        wdw2 = row['WDW2']
+        hypergraph = row['Hypergraph']
+        sem_synt = row['Semantic-Syntactic']
 
-        # Keep track of nodes added in this sentence
-        sentence_subjects = []
-        sentence_objects = []
+        # Determine node types based on WDW and WDW2
+        node1_type = 'subject' if wdw1 == 'Who' else 'verb' if wdw1 == 'Did' else 'object'
+        node2_type = 'subject' if wdw2 == 'Who' else 'verb' if wdw2 == 'Did' else 'object'
 
-        # Process subjects
-        for subj, preps in subjects:
-            node_id = subj + '_s'  # Unique identifier for subject nodes
-            add_node_with_type(G, node_id, label=subj, node_type='subject')
-            sentence_subjects.append(node_id)
-            # Process prepositions attached to the subject
-            for prep_phrase in preps:
-                # Split prep phrase into preposition and object
-                prep_parts = prep_phrase.split(' ', 1)
-                if len(prep_parts) == 2:
-                    prep, prep_obj = prep_parts
-                    prep_obj_id = prep_obj + '_s'
-                    add_node_with_type(G, prep_obj_id, label=prep_obj, node_type='subject')
-                    # Add edge from subject to preposition object
-                    G.add_edge(node_id, prep_obj_id)
-                else:
-                    prep_obj_id = prep_phrase + '_s'
-                    add_node_with_type(G, prep_obj_id, label=prep_phrase, node_type='subject')
-                    G.add_edge(node_id, prep_obj_id)
+        # Create unique node IDs to differentiate between subjects, verbs, and objects
+        node1_id = node1 + '_' + node1_type[0]
+        node2_id = node2 + '_' + node2_type[0]
 
-        # Process verbs
-        for verb in verbs:
-            add_node_with_type(G, verb, label=verb, node_type='verb')
-            # Connect subjects to verbs
-            for subj, _ in subjects:
-                subj_id = subj + '_s'
-                G.add_edge(subj_id, verb)
+        # Add nodes with labels and types
+        add_node_with_type(G, node1_id, label=node1, node_type=node1_type)
+        add_node_with_type(G, node2_id, label=node2, node_type=node2_type)
 
-        # Process objects
-        for obj, preps in objects:
-            node_id = obj + '_o'  # Unique identifier for object nodes
-            add_node_with_type(G, node_id, label=obj, node_type='object')
-            sentence_objects.append(node_id)
-            # Process prepositions attached to the object
-            for prep_phrase in preps:
-                prep_parts = prep_phrase.split(' ', 1)
-                if len(prep_parts) == 2:
-                    prep, prep_obj = prep_parts
-                    prep_obj_id = prep_obj + '_o'
-                    add_node_with_type(G, prep_obj_id, label=prep_obj, node_type='object')
-                    # Add edge from object to preposition object
-                    G.add_edge(node_id, prep_obj_id)
-                else:
-                    prep_obj_id = prep_phrase + '_o'
-                    add_node_with_type(G, prep_obj_id, label=prep_phrase, node_type='object')
-                    G.add_edge(node_id, prep_obj_id)
-            # Connect verbs to objects
-            for verb in verbs:
-                G.add_edge(verb, node_id)
+        # Determine relation type based on 'Semantic-Syntactic' column
+        relation_type = 'synonym' if sem_synt == 1 else 'syntactic'
 
-        # Add edges between subjects in the same sentence
-        for i in range(len(sentence_subjects)):
-            for j in range(i+1, len(sentence_subjects)):
-                G.add_edge(sentence_subjects[i], sentence_subjects[j])
-
-        # Add edges between objects in the same sentence
-        for i in range(len(sentence_objects)):
-            for j in range(i+1, len(sentence_objects)):
-                G.add_edge(sentence_objects[i], sentence_objects[j])
-
-    # After building the initial graph, add synonym edges
-    subject_nodes = [node for node in G.nodes() if node.endswith('_s')]
-    object_nodes = [node for node in G.nodes() if node.endswith('_o')]
-
-    # Add synonym edges between subject nodes
-    add_synonym_edges(G, subject_nodes)
-
-    # Add synonym edges between object nodes
-    add_synonym_edges(G, object_nodes)
+        # Add edge with attributes
+        G.add_edge(node1_id, node2_id, relation=relation_type, hypergraph=hypergraph)
 
     return G
 
 
+
+# Include your plot_graph function here
 def plot_graph(G):
     """
     Plot the SVO graph with subjects on the left, verbs in the center, and objects on the right,
@@ -256,11 +152,11 @@ def plot_graph(G):
                 color = "#1f77b4"  # Blue
             elif start_label in negative and end_label in negative:
                 color = "#d62728"  # Red
-            elif (start_label in positive and end_label in negative) or (start_label in negative and start_label in positive):
+            elif (start_label in positive and end_label in negative) or (start_label in negative and end_label in positive):
                 color = "#9467bd"  # Purple
             elif (start_label in positive and end_label not in negative) or (end_label in positive and start_label not in negative):
                 color = "#b4cad6"  # Grayish blue
-            elif (start_label in negative and end_label not in negative) or (end_label in negative and start_label not in positive):
+            elif (start_label in negative and end_label not in positive) or (end_label in negative and start_label not in positive):
                 color = "#dc9f9e"  # Grayish red
             else:
                 color = "#7f7f7f"  # Grey

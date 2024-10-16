@@ -4,6 +4,8 @@ from whodidwhat.resources import _VAGUE_ADVMODS, _VAGUE_AUX, _VAGUE_ADJ
 import spacy
 import spacy_transformers
 from .nlp_utils import get_spacy_nlp
+from itertools import combinations, chain
+from nltk.corpus import wordnet as wn
 
 
 def extract_svos_from_text(text):
@@ -23,12 +25,30 @@ def spacynlp(text):
 
     return nlp(text)
 
+
+def are_synonyms(word1, word2):
+    """
+    Check if two words are synonyms using WordNet.
+    """
+    synsets1 = wn.synsets(word1)
+    synsets2 = wn.synsets(word2)
+    for syn1 in synsets1:
+        for syn2 in synsets2:
+            # Check if synsets are the same
+            if syn1 == syn2:
+                return True
+            # Check if they share any lemma names
+            if set(syn1.lemma_names()).intersection(set(syn2.lemma_names())):
+                return True
+    return False
+
 def extract_svos(doc):
     """
     Extract Subject-Verb-Object (SVO) triples from a parsed document.
-    Returns a List of triplets of SVOs.
+    Returns a pandas DataFrame with specified columns.
     """
-    results = []
+    # Collect SVO triples
+    svo_triples = []
 
     for possible_verb in doc:
         if (possible_verb.pos_ in ("VERB", "AUX")) and \
@@ -38,10 +58,108 @@ def extract_svos(doc):
             subjects = get_verb_subjects(possible_verb)
             objects = get_verb_objects(possible_verb)
             verb_phrase = get_verb_phrase(possible_verb)
-            
 
-            results.append([subjects, verb_phrase, objects])
-    return results
+            svo_triples.append([subjects, verb_phrase, objects])
+
+    # Initialize list to hold DataFrame rows
+    data_rows = []
+
+    # Process SVO triples to create DataFrame rows
+    for svo in svo_triples:
+        subjects, verbs, objects = svo
+        hypergraph = str(svo)
+
+        # For syntactic relations (Semantic-Syntactic = 0)
+        # Create Subject-Verb relations
+        for subj, _ in subjects:
+            for verb in verbs:
+                # Subject - Verb relation
+                data_rows.append({
+                    'Node 1': subj,
+                    'WDW': 'Who',
+                    'Node 2': verb,
+                    'WDW2': 'Did',
+                    'Hypergraph': hypergraph,
+                    'Semantic-Syntactic': 0
+                })
+
+        # Create Verb-Object relations
+        for verb in verbs:
+            for obj, _ in objects:
+                # Verb - Object relation
+                data_rows.append({
+                    'Node 1': verb,
+                    'WDW': 'Did',
+                    'Node 2': obj,
+                    'WDW2': 'What',
+                    'Hypergraph': hypergraph,
+                    'Semantic-Syntactic': 0
+                })
+
+        # Create Subject-Subject relations when multiple subjects are present
+        if len(subjects) > 1:
+            for (subj1, _), (subj2, _) in combinations(subjects, 2):
+                data_rows.append({
+                    'Node 1': subj1,
+                    'WDW': 'Who',
+                    'Node 2': subj2,
+                    'WDW2': 'Who',
+                    'Hypergraph': hypergraph,
+                    'Semantic-Syntactic': 0
+                })
+
+        # Create Object-Object relations when multiple objects are present
+        if len(objects) > 1:
+            for (obj1, _), (obj2, _) in combinations(objects, 2):
+                data_rows.append({
+                    'Node 1': obj1,
+                    'WDW': 'What',
+                    'Node 2': obj2,
+                    'WDW2': 'What',
+                    'Hypergraph': hypergraph,
+                    'Semantic-Syntactic': 0
+                })
+
+    # Now, process for semantic relations (Semantic-Syntactic = 1)
+    # Collect all subjects and objects across all SVOs
+    all_subjects = [subj for svo in svo_triples for subj, _ in svo[0]]
+    all_objects = [obj for svo in svo_triples for obj, _ in svo[2]]
+
+    # Remove duplicates
+    subject_nodes = list(set(all_subjects))
+    object_nodes = list(set(all_objects))
+
+    # For each pair of subjects, check if they are synonyms
+    subject_pairs = combinations(subject_nodes, 2)
+    for subj1, subj2 in subject_pairs:
+        if are_synonyms(subj1, subj2):
+            # Add semantic relation
+            data_rows.append({
+                'Node 1': subj1,
+                'WDW': 'Who',
+                'Node 2': subj2,
+                'WDW2': 'Who',
+                'Hypergraph': 'N/A',
+                'Semantic-Syntactic': 1
+            })
+
+    # Similarly for objects
+    object_pairs = combinations(object_nodes, 2)
+    for obj1, obj2 in object_pairs:
+        if are_synonyms(obj1, obj2):
+            data_rows.append({
+                'Node 1': obj1,
+                'WDW': 'What',
+                'Node 2': obj2,
+                'WDW2': 'What',
+                'Hypergraph': 'N/A',
+                'Semantic-Syntactic': 1
+            })
+
+    # Create DataFrame
+    df = pd.DataFrame(data_rows, columns=['Node 1', 'WDW', 'Node 2', 'WDW2', 'Hypergraph', 'Semantic-Syntactic'])
+
+    return df
 
 def get_verb_phrase(verb):
     """
