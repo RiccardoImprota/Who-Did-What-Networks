@@ -68,32 +68,30 @@ def get_verb_phrase(verb):
             parts.append(noun_phrase)
 
 
-    
-
     # Add the main verb
     parts.append(verb.lemma_)
 
-    # In get_verb_phrase(verb), after processing adverbs_after
-    for child in verb.children:
-        if child.dep_ == 'acomp':
-            # Include the 'acomp' adjective in the verb phrase
-            parts.append(child.lemma_)
-            # Include any modifiers of the 'acomp' adjective
-            for grandchild in child.children:
-                if grandchild.dep_ in {'advmod', 'amod', 'npadvmod'} and\
-                    grandchild.pos_ not in {'SCONJ', 'CCONJ', 'PART', 'DET'} and\
-                        grandchild.lemma_ not in _VAGUE_ADVMODS:
-                    parts.append(grandchild.lemma_)
+    ## In get_verb_phrase(verb), after processing adverbs_after
+    #for child in verb.children:
+    #    if child.dep_ == 'acomp':
+    #        # Include the 'acomp' adjective in the verb phrase
+    #        parts.append(child.lemma_)
+    #        # Include any modifiers of the 'acomp' adjective
+    #        for grandchild in child.children:
+    #            if grandchild.dep_ in {'advmod', 'amod', 'npadvmod'} and\
+    #                grandchild.pos_ not in {'SCONJ', 'CCONJ', 'PART', 'DET'} and\
+    #                    grandchild.lemma_ not in VAGUE_ADVMODS:
+    #                parts.append(grandchild.lemma_)
 
     # Get adverbial modifiers after the verb
     #adverbs_after = [child.lemma_ for child in verb.rights if child.dep_ in {'advmod', 'amod', 'npadvmod'} and\
-    #                  child.pos_ not in {'SCONJ', 'CCONJ', 'PART', 'DET'} and child.lemma_ not in _VAGUE_ADVMODS]
+    #                  child.pos_ not in {'SCONJ', 'CCONJ', 'PART', 'DET'} and child.lemma_ not in VAGUE_ADVMODS]
     #parts.extend(adverbs_after)
     
     # Get adverbial modifiers after the verb
     for child in verb.rights:
         if child.dep_ in {'advmod', 'amod', 'npadvmod'} and\
-            child.pos_ not in {'SCONJ', 'CCONJ', 'PART', 'DET'} and child.lemma_ not in _VAGUE_ADVMODS:
+            child.pos_ not in {'SCONJ', 'CCONJ', 'PART', 'DET'} and child.lemma_ not in VAGUE_ADVMODS:
             # Include the noun and its modifiers
             noun_phrase, prep_phrases = get_compound_parts(child)
             parts.append(noun_phrase)
@@ -132,13 +130,19 @@ def get_verb_subjects(verb):
 
     # Handle acl and relcl dependencies
     if verb.dep_ in {'acl', 'relcl'}:
-        # The subject is the noun the verb is modifying
-        modified_noun = verb.head
-        main_part, prep_parts = get_compound_parts(modified_noun)
-        subjects.append((main_part, prep_parts))
+        # If the verb has its own subject, use it
+        nsubjs = [child for child in verb.children if child.dep_ == 'nsubj']
+        if nsubjs:
+            for subj in nsubjs:
+                subjects.extend(extract_subjects(subj))
+        else:
+            # Otherwise, the subject is the noun the verb is modifying
+            modified_noun = verb.head
+            main_part, prep_parts = get_compound_parts(modified_noun, lemmatize=False)
+            subjects.append((main_part, prep_parts))
         return subjects
-
-     # Direct subjects of the verb
+    
+    # Direct subjects of the verb
     direct_subjects = [
         child for child in verb.children
         if child.dep_ in {'nsubj'}
@@ -211,7 +215,7 @@ def extract_subjects(subject_token):
 
     if subject_token.pos_ in {'NOUN', 'PROPN', 'PRON'}:
         # Extract compounds and the main noun
-        main_part, prep_parts = get_compound_parts(subject_token)
+        main_part, prep_parts = get_compound_parts(subject_token,lemmatize=False)
         subjects.append((main_part, prep_parts))
 
 
@@ -223,20 +227,21 @@ def extract_subjects(subject_token):
         if conj.pos_ in {'NOUN', 'PROPN', 'PRON'}
     ]
     for conj in conjunct_subjects:
-        main_part, prep_parts = get_compound_parts(conj)
+        main_part, prep_parts = get_compound_parts(conj,lemmatize=False)
         subjects.append((main_part, prep_parts))
 
     return subjects
 
 
 
-def get_compound_parts(token):
+def get_compound_parts(token, lemmatize=True):
     """
     Retrieve the main token and its compound modifiers as a single string.
     Also includes adverbial and adjectival modifiers of adjectives.
 
     Args:
         token (spacy.tokens.Token): The token to extract compounds from.
+        lemmatize (bool, optional): Whether to lemmatize the extracted parts.
 
     Returns:
         str: A string containing the compound phrase with all relevant modifiers.
@@ -244,14 +249,32 @@ def get_compound_parts(token):
     parts = []
     prep_parts = []
 
-    # Extract determiners
-    dets = [child.text for child in token.children if (child.dep_ == 'det') and child.lemma_ not in {'the','a','an'}]
-    parts.extend(dets)
+    # Extract determiners (excluding 'the', 'a', 'an')
+    dets = [child for child in token.children if (child.dep_ == 'det') and child.lemma_ not in {'the','a','an'}]
+    if lemmatize:
+        parts.extend([child.lemma_ for child in dets])
+    else:
+        parts.extend([child.text for child in dets])
+
 
     def get_conj_ADJ(token):
         for conj in child.conjuncts:
             if conj.pos_ == 'ADJ' and conj.dep_ == 'conj':
                 modifiers.append(conj)
+
+    # Handle 'acl' dependencies separately
+    for child in token.children:
+        if child.dep_ in {'acl', 'relcl'}:
+            # Include the 'mark' (e.g., 'that')
+            markers = [t for t in child.children if t.dep_ == 'mark']
+            parts.extend([t.lemma_ if lemmatize else t.text for t in markers])
+
+            # Include the 'nsubj' of the 'acl' verb
+            nsubjs = [t for t in child.children if t.dep_ == 'nsubj']
+            for nsubj in nsubjs:
+                nsubj_main, nsubj_preps = get_compound_parts(nsubj, lemmatize=lemmatize)
+                parts.append(nsubj_main)
+                prep_parts.extend(nsubj_preps)
 
     # Extract all modifiers
     modifiers = []
@@ -270,18 +293,24 @@ def get_compound_parts(token):
                         modifiers.append(grandgrandchild)
                         get_conj_ADJ(grandgrandchild)
                     #Let's just stop here to avoid too large compounds.
-            
-    
+
 
     # Sort all modifiers based on their position in the text
     modifiers = sorted(modifiers, key=lambda x: x.i)
 
     # Add all modifier text
     for modifier in modifiers:
-        parts.append(modifier.text)
+        if lemmatize:
+            parts.append(modifier.lemma_)
+        else:
+            parts.append(modifier.text)
 
     # Add the main token's text
-    parts.append(token.text)
+    if lemmatize:
+        parts.append(token.lemma_)
+    else:
+        parts.append(token.text)
+
     
     # Handle prepositional phrases separately
     preps = [child for child in token.children if child.dep_ == 'prep']
@@ -295,16 +324,12 @@ def get_compound_parts(token):
                 # Process the pobj and its conjuncts
                 pobj_conjuncts = [pobj] + list(pobj.conjuncts)
                 for pobj_item in pobj_conjuncts:
-                    pobj_main, pobj_preps = get_compound_parts(pobj_item)
+                    pobj_main, pobj_preps = get_compound_parts(pobj_item,lemmatize=lemmatize)
                     prep_phrase.append(pobj_main)
                     # Handle nested prepositional phrases
                     for nested_prep in pobj_preps:
                         prep_phrase.append(nested_prep)
             prep_parts.append(' '.join(prep_phrase))
-
-
-
-
 
     main_part = ' '.join(parts)
 
@@ -369,7 +394,7 @@ def get_verb_objects(verb):
             objects.extend(extract_objects(obj))
 
     # 1. Direct Objects (e.g., "eat an apple")
-    direct_objects = [child for child in verb.children if child.dep_ in {'dobj', 'attr', 'oprd'}]
+    direct_objects = [child for child in verb.children if child.dep_ in {'dobj', 'attr', 'oprd','acomp'}]
     process_objects(direct_objects)
 
     # 2. Indirect Objects (e.g., "give me the book")
@@ -450,7 +475,8 @@ def extract_objects(object_token):
         objects.append((main_part, prep_parts))
 
     # Additionally, handle conjunct objects (e.g., "apples and oranges")
-    conjunct_objects = [conj for conj in object_token.conjuncts if conj.pos_ in {'NOUN', 'PROPN', 'PRON'}]
+
+    conjunct_objects = [conj for conj in object_token.conjuncts if conj.pos_ in {'NOUN', 'PROPN', 'PRON','ADJ'}]
     for conj in conjunct_objects:
         # Extract compounds and the main noun for the conjunct
         main_part, prep_parts = get_compound_parts(conj)
