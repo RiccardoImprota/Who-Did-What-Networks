@@ -91,12 +91,14 @@ def get_verb_phrase(verb):
     # Get adverbial modifiers after the verb
     for child in verb.rights:
         if child.dep_ in {'advmod', 'amod', 'npadvmod'} and\
-            child.pos_ not in {'SCONJ', 'CCONJ', 'PART', 'DET'} and child.lemma_ not in VAGUE_ADVMODS:
+            child.pos_ not in {'SCONJ', 'CCONJ', 'PART', 'DET'} and child.lemma_ not in _VAGUE_ADVMODS:
             # Include the noun and its modifiers
             noun_phrase, prep_phrases = get_compound_parts(child)
             parts.append(noun_phrase)
 
-
+    # Get auxiliaries and negations after the verb
+    aux = [child.lemma_ for child in verb.rights if child.dep_ in {'aux','auxpass','neg'} and child.lemma_ not in _VAGUE_AUX]
+    parts.extend(aux)
     
 
     for child in verb.children:
