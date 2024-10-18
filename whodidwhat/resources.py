@@ -1,15 +1,7 @@
 
 import spacy
 import subprocess
-from .nlp_utils import get_spacy_nlp, get_stanza_nlp
 
-def spacynlp(text):
-    """
-    Process the text using the spaCy NLP pipeline.
-    """
-    nlp = get_spacy_nlp()
-
-    return nlp(text)
 
 def _valences(language="english"):
 

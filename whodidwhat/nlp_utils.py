@@ -1,11 +1,22 @@
 import spacy
 import stanza
 import warnings
-from whodidwhat.resources import _valences, spacynlp
+from whodidwhat.resources import _valences
 
 
 _nlp_spacy = None
 _nlp_stanza = None
+
+
+
+def spacynlp(text):
+    """
+    Process the text using the spaCy NLP pipeline.
+    """
+    nlp = get_spacy_nlp()
+
+    return nlp(text)
+
 
 def get_spacy_nlp():
     global _nlp_spacy

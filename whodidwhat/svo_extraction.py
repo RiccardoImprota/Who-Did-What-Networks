@@ -1,9 +1,9 @@
 from whodidwhat.textloader import text_preparation
 from whodidwhat.WDWplot import *
-from whodidwhat.resources import _VAGUE_ADVMODS, _VAGUE_AUX, _VAGUE_ADJ, spacynlp
+from whodidwhat.resources import _VAGUE_ADVMODS, _VAGUE_AUX, _VAGUE_ADJ
 import spacy
 import spacy_transformers
-from .nlp_utils import get_spacy_nlp, compute_valence
+from .nlp_utils import spacynlp, compute_valence
 from itertools import combinations, chain
 from nltk.corpus import wordnet as wn
 import pandas as pd
