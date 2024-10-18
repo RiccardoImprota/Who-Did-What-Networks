@@ -1,6 +1,6 @@
 from whodidwhat.textloader import text_preparation
 from whodidwhat.WDWplot import *
-from whodidwhat.resources import _VAGUE_ADVMODS, _VAGUE_AUX, _VAGUE_ADJ
+from whodidwhat.resources import _VAGUE_ADVMODS, _VAGUE_AUX, _VAGUE_ADJ, _valences
 import spacy
 import spacy_transformers
 from .nlp_utils import get_spacy_nlp
@@ -40,6 +40,7 @@ def compute_valence(text):
     Returns:
         str: 'positive', 'negative', 'contrasting', or 'neutral'
     """
+    positive, negative, ambivalent = _valences('english')
     doc = spacynlp(text.lower())
     pos_count = 0
     neg_count = 0
