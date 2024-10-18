@@ -1,7 +1,7 @@
 import spacy
 import stanza
 import warnings
-from whodidwhat.resources import _valences
+from whodidwhat.resources import _valences, spacynlp
 
 
 _nlp_spacy = None
@@ -15,6 +15,14 @@ def get_spacy_nlp():
             _nlp_spacy = spacy.load('en_core_web_trf')
     return _nlp_spacy
 
+def spacynlp(text):
+    """
+    Process the text using the spaCy NLP pipeline.
+    """
+    nlp = get_spacy_nlp()
+
+    return nlp(text)
+
 def get_stanza_nlp():
     global _nlp_stanza
     if _nlp_stanza is None:
@@ -22,6 +30,8 @@ def get_stanza_nlp():
             warnings.simplefilter("ignore")
             _nlp_stanza = stanza.Pipeline(lang='en', processors='tokenize,coref', verbose=False)
     return _nlp_stanza
+
+
 
 def compute_valence(text):
     """

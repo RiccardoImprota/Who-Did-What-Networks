@@ -1,6 +1,6 @@
 from whodidwhat.textloader import text_preparation
 from whodidwhat.WDWplot import *
-from whodidwhat.resources import _VAGUE_ADVMODS, _VAGUE_AUX, _VAGUE_ADJ
+from whodidwhat.resources import _VAGUE_ADVMODS, _VAGUE_AUX, _VAGUE_ADJ, spacynlp
 import spacy
 import spacy_transformers
 from .nlp_utils import get_spacy_nlp, compute_valence
@@ -17,14 +17,6 @@ def extract_svos_from_text(text):
     doc = spacynlp(prepared_text)
     svos = extract_svos(doc)
     return svos
-
-def spacynlp(text):
-    """
-    Process the text using the spaCy NLP pipeline.
-    """
-    nlp = get_spacy_nlp()
-
-    return nlp(text)
 
 ################################################################################################
 ## Stuff to extract svos. 
