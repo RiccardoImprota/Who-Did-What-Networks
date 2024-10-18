@@ -97,7 +97,7 @@ def compute_valence(text):
     else:
         return 'neutral'
 
-def extract_subjects(df):
+def extract_set_subjects(df):
     """
     Extracts a set of all unique subjects from the DataFrame.
     Each element in the set is a tuple of (subject, valence).
@@ -114,7 +114,7 @@ def extract_subjects(df):
     return subject_tuples
 
 
-def extract_objects(df):
+def extract_set_objects(df):
     """
     Extracts a set of all unique objects from the DataFrame.
     Each element in the set is a tuple of (object, valence).
@@ -130,7 +130,7 @@ def extract_objects(df):
         object_tuples.add((obj, valence))
     return object_tuples
 
-def extract_verbs(df):
+def extract_set_verbs(df):
     """
     Extracts a set of all unique verbs from the DataFrame.
     Each element in the set is a tuple of (verb, valence).
