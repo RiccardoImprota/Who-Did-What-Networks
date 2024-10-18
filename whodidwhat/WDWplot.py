@@ -1,10 +1,9 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
-from whodidwhat.resources import _valences
-from whodidwhat.svo_extraction import compute_valence
 from itertools import combinations, chain
 from nltk.corpus import wordnet as wn
+from whodidwhat.nlp_utils import compute_valence
 
 
 def plot_svo_graph(svo_list, subject_filter=None):
