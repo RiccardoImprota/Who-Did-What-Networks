@@ -1,6 +1,7 @@
 
 import spacy
 import subprocess
+from .nlp_utils import get_spacy_nlp, get_stanza_nlp
 
 def spacynlp(text):
     """
