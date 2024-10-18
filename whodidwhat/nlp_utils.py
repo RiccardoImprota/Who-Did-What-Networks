@@ -15,14 +15,6 @@ def get_spacy_nlp():
             _nlp_spacy = spacy.load('en_core_web_trf')
     return _nlp_spacy
 
-def spacynlp(text):
-    """
-    Process the text using the spaCy NLP pipeline.
-    """
-    nlp = get_spacy_nlp()
-
-    return nlp(text)
-
 def get_stanza_nlp():
     global _nlp_stanza
     if _nlp_stanza is None:
