@@ -84,7 +84,8 @@ def plot_graph(G):
     Args:
         G (networkx.Graph): The graph to plot.
     """
-    figsize = (12, 14)
+    num_nodes = G.number_of_nodes()
+    figsize = (10 + num_nodes * 0.05, 6 + num_nodes * 0.2)
     plt.figure(figsize=figsize)
     
     # Get nodes by type
@@ -92,16 +93,16 @@ def plot_graph(G):
     verbs = [node for node, attr in G.nodes(data=True) if 'verb' in attr.get('type', set())]
     objects = [node for node, attr in G.nodes(data=True) if 'object' in attr.get('type', set())]
     
-    # Get nodes by valence (assuming _valences function is defined)
-    positive, negative, ambivalent = _valences('english')
-    
-    # Assign node colors based on valence
+    # Assign node colors based on valence using compute_valence()
     node_colors = []
+    valences = {}  # To store valences for later use
     for node in G.nodes():
         label = G.nodes[node].get('label', node)
-        if label in positive:
+        valence = compute_valence(label)
+        valences[node] = valence  # Store valence for later
+        if valence == 'positive':
             node_colors.append("#1f77b4")  # Blue
-        elif label in negative:
+        elif valence == 'negative':
             node_colors.append("#d62728")  # Red
         else:
             node_colors.append("#7f7f7f")  # Grey
@@ -148,31 +149,44 @@ def plot_graph(G):
     min_width = (6 if is_weighted else 3) * (figsize[0] / 12)
     max_width = (10 if is_weighted else 3) * (figsize[0] / 12)
     
-    # Draw edges with varying thickness and colors
+    # Draw edges with varying thickness, colors, and styles
     for start, end, data in G.edges(data=True):
         count = edge_counts.get((start, end), 1)
         start_label = G.nodes[start].get('label', start)
         end_label = G.nodes[end].get('label', end)
-    
+        
+        start_valence = valences[start]
+        end_valence = valences[end]
+        
+        # Determine edge color based on valence of start and end nodes
         if data.get('relation') == 'synonym':
             color = '#009E73'  # Green
         else:
-            # Existing logic to determine edge color based on node labels
-            if start_label in positive and end_label in positive:
+            if start_valence == 'positive' and end_valence == 'positive':
                 color = "#1f77b4"  # Blue
-            elif start_label in negative and end_label in negative:
+            elif start_valence == 'negative' and end_valence == 'negative':
                 color = "#d62728"  # Red
-            elif (start_label in positive and end_label in negative) or (start_label in negative and end_label in positive):
+            elif (start_valence == 'positive' and end_valence == 'negative') or (start_valence == 'negative' and end_valence == 'positive'):
                 color = "#9467bd"  # Purple
-            elif (start_label in positive and end_label not in negative) or (end_label in positive and start_label not in negative):
+            elif (start_valence == 'positive' and end_valence == 'neutral') or (end_valence == 'positive' and start_valence == 'neutral'):
                 color = "#b4cad6"  # Grayish blue
-            elif (start_label in negative and end_label not in positive) or (end_label in negative and start_label not in positive):
+            elif (start_valence == 'negative' and end_valence == 'neutral') or (end_valence == 'negative' and start_valence == 'neutral'):
                 color = "#dc9f9e"  # Grayish red
             else:
                 color = "#7f7f7f"  # Grey
-    
+        
         # Calculate edge width
         edge_width = min_width + (count / max_count) * (max_width - min_width)
+        
+        # Determine edge style
+        start_type = G.nodes[start].get('type', set())
+        end_type = G.nodes[end].get('type', set())
+        if 'subject' in start_type and 'subject' in end_type:
+            style = 'dashed'
+        elif 'object' in start_type and 'object' in end_type:
+            style = 'dashed'
+        else:
+            style = 'solid'
     
         nx.draw_networkx_edges(
             G, pos, edgelist=[(start, end)], width=edge_width, alpha=0.45, edge_color=color, arrows=False

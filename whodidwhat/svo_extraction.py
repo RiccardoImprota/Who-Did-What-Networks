@@ -52,7 +52,6 @@ def compute_valence(text):
         # Check if the token is in positive or negative sets
         if token.text in positive or token.text in negative:
 
-
             negated = False
             # Check ancestors for negation
 
@@ -85,7 +84,6 @@ def compute_valence(text):
                     pos_count += 1  # Invert negative to positive
                 else:
                     neg_count += 1
-            print(token.text, pos_count, neg_count)
 
     # Determine overall valence
     if pos_count > 0 and neg_count > 0:
