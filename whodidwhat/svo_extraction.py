@@ -26,6 +26,130 @@ def spacynlp(text):
 
     return nlp(text)
 
+################################################################################################
+## Stuff to extract svos. 
+################################################################################################
+
+def compute_valence(text):
+    """
+    Compute the valence of a given text based on positive and negative words.
+
+    Args:
+        text (str): The text to analyze.
+
+    Returns:
+        str: 'positive', 'negative', 'contrasting', or 'neutral'
+    """
+    doc = spacynlp(text.lower())
+    pos_count = 0
+    neg_count = 0
+
+    for token in doc:
+        if token.text in ambivalent:
+            continue  # Ignore ambivalent words
+
+        # Check if the token is in positive or negative sets
+        if token.text in positive or token.text in negative:
+
+
+            negated = False
+            # Check ancestors for negation
+
+            # Check immediate ancestors for negation
+            if token.head.dep_ == 'neg':
+                negated = True
+
+            for headchild in token.head.children:
+                if headchild.dep_ == 'neg':
+                    negated = True
+
+            # Check if the token itself is negated
+            if any(child.dep_ == 'neg' for child in token.children):
+                negated = True
+
+
+            ## Check if the token itself has a negation dependency
+            #for ancestor in token.ancestors:
+            #    if any(child.dep_ == 'neg' for child in ancestor.children):
+            #        negated = True
+            #        break
+
+            if token.text in positive:
+                if negated:
+                    neg_count += 1  # Invert positive to negative
+                else:
+                    pos_count += 1
+            elif token.text in negative:
+                if negated:
+                    pos_count += 1  # Invert negative to positive
+                else:
+                    neg_count += 1
+            print(token.text, pos_count, neg_count)
+
+    # Determine overall valence
+    if pos_count > 0 and neg_count > 0:
+        return 'contrasting'
+    elif pos_count > 0:
+        return 'positive'
+    elif neg_count > 0:
+        return 'negative'
+    else:
+        return 'neutral'
+
+def extract_subjects(df):
+    """
+    Extracts a set of all unique subjects from the DataFrame.
+    Each element in the set is a tuple of (subject, valence).
+    """
+    # Filter rows where WDW is 'Who' (indicative of subjects)
+    df_subjects = df[df['WDW'] == 'Who']
+    # Get unique subjects from 'Node 1'
+    subjects = df_subjects['Node 1'].unique()
+    # Compute valence and create a set of tuples
+    subject_tuples = set()
+    for subj in subjects:
+        valence = compute_valence(subj)
+        subject_tuples.add((subj, valence))
+    return subject_tuples
+
+
+def extract_objects(df):
+    """
+    Extracts a set of all unique objects from the DataFrame.
+    Each element in the set is a tuple of (object, valence).
+    """
+    # Filter rows where WDW2 is 'What' (indicative of objects)
+    df_objects = df[df['WDW2'] == 'What']
+    # Get unique objects from 'Node 2'
+    objects = df_objects['Node 2'].unique()
+    # Compute valence and create a set of tuples
+    object_tuples = set()
+    for obj in objects:
+        valence = compute_valence(obj)
+        object_tuples.add((obj, valence))
+    return object_tuples
+
+def extract_verbs(df):
+    """
+    Extracts a set of all unique verbs from the DataFrame.
+    Each element in the set is a tuple of (verb, valence).
+    """
+    # Verbs can be in 'Node 1' where WDW is 'Did' or in 'Node 2' where WDW2 is 'Did'
+    verbs_node1 = df[df['WDW'] == 'Did']['Node 1']
+    verbs_node2 = df[df['WDW2'] == 'Did']['Node 2']
+    # Combine and get unique verbs
+    verbs = pd.concat([verbs_node1, verbs_node2]).unique()
+    # Compute valence and create a set of tuples
+    verb_tuples = set()
+    for verb in verbs:
+        valence = compute_valence(verb)
+        verb_tuples.add((verb, valence))
+    return verb_tuples
+
+################################################################################################
+## Extract svos code. 
+################################################################################################
+
 
 def are_synonyms(word1, word2):
     """
