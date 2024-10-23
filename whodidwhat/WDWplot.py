@@ -189,7 +189,7 @@ def plot_graph(G):
             style = 'solid'
     
         nx.draw_networkx_edges(
-            G, pos, edgelist=[(start, end)], width=edge_width, alpha=0.45, edge_color=color, arrows=False
+            G, pos, edgelist=[(start, end)], width=edge_width, alpha=0.45, edge_color=color, style=style, arrows=False
         )
     
     # Draw labels with custom rectangular backgrounds
