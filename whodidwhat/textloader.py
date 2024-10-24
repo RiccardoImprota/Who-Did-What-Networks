@@ -36,6 +36,7 @@ def clean_text(text):
     # Step 1: Remove anything inside parentheses including the parentheses
     # The regex '\(.*?\)' matches any content inside parentheses and the parentheses themselves.
     cleaned_text = re.sub(r'\(.*?\)', '', text)
+    cleaned_text = re.sub(r'\[.*?\]', '', text)
     
     # Step 2: Replace double spaces with single spaces
     # This step is repeated until all double spaces are reduced to single spaces
@@ -92,7 +93,8 @@ def stanza_solve_coreferences(doc):
 
     words_to_replace = {
         'he', 'she', 'they', 'it', 'him', 'her', 'them',
-        'his', 'hers', 'theirs', 'this'
+        'his', 'hers', 'theirs', 'this', 'object', 'person', 'thing', 'city',
+        'item', 'place', 'country', 'animal', 'plant'
     }
 
     # Iterate over sentences and words to build mentions
