@@ -89,7 +89,7 @@ def plot_graph(G):
     node_colors = {}
     for node in G.nodes():
         label = G.nodes[node].get('label', node)
-        valence = wdw.compute_valence(label)
+        valence = compute_valence(label)
         valences[node] = valence
         if valence == 'positive':
             node_colors[node] = "#1f77b4"  # Blue
