@@ -24,7 +24,7 @@ def extract_svos_from_text(text):
 
 
 
-def extract_set_subjects(df):
+def export_subj(df):
     """
     Extracts a set of all unique subjects from the DataFrame.
     Each element in the set is a tuple of (subject, valence).
@@ -41,7 +41,7 @@ def extract_set_subjects(df):
     return subject_tuples
 
 
-def extract_set_objects(df):
+def export_obj(df):
     """
     Extracts a set of all unique objects from the DataFrame.
     Each element in the set is a tuple of (object, valence).
@@ -57,7 +57,7 @@ def extract_set_objects(df):
         object_tuples.add((obj, valence))
     return object_tuples
 
-def extract_set_verbs(df):
+def export_verb(df):
     """
     Extracts a set of all unique verbs from the DataFrame.
     Each element in the set is a tuple of (verb, valence).

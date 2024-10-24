@@ -1,5 +1,4 @@
 import spacy
-import stanza
 import warnings
 from whodidwhat.resources import _valences
 
@@ -17,16 +16,27 @@ def spacynlp(text):
 
     return nlp(text)
 
+def ensure_wordnet_downloaded():
+    import nltk
+    from nltk.data import find
+    try:
+        find('corpora/wordnet')
+    except LookupError:
+        nltk.download('wordnet')
+
+
 
 def get_spacy_nlp():
     global _nlp_spacy
     if _nlp_spacy is None:
+        ensure_wordnet_downloaded()
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             _nlp_spacy = spacy.load('en_core_web_trf')
     return _nlp_spacy
 
 def get_stanza_nlp():
+    import stanza
     global _nlp_stanza
     if _nlp_stanza is None:
         with warnings.catch_warnings():

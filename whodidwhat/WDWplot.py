@@ -73,92 +73,112 @@ def svo_to_graph(df, subject_filter=None):
     return G
 
 
-
-
-# Include your plot_graph function here
 def plot_graph(G):
-    """
-    Plot the SVO graph with subjects on the left, verbs in the center, and objects on the right,
-    incorporating node valence for coloring, edge weights, and rectangular labels.
-    
-    Args:
-        G (networkx.Graph): The graph to plot.
-    """
     num_nodes = G.number_of_nodes()
-    figsize = (10 + num_nodes * 0.05, 6 + num_nodes * 0.2)
+    # Scale figure size based on number of nodes
+    figsize = (max(12, 8 + (num_nodes**0.5) * 1.1), max(8, 5+ (num_nodes**0.5) * 0.9))
     plt.figure(figsize=figsize)
-    
-    # Get nodes by type
+
+    # Separate nodes by type
     subjects = [node for node, attr in G.nodes(data=True) if 'subject' in attr.get('type', set())]
     verbs = [node for node, attr in G.nodes(data=True) if 'verb' in attr.get('type', set())]
     objects = [node for node, attr in G.nodes(data=True) if 'object' in attr.get('type', set())]
-    
-    # Assign node colors based on valence using compute_valence()
-    node_colors = []
-    valences = {}  # To store valences for later use
+
+    # Compute valences first
+    valences = {}
+    node_colors = {}
     for node in G.nodes():
         label = G.nodes[node].get('label', node)
-        valence = compute_valence(label)
-        valences[node] = valence  # Store valence for later
+        valence = wdw.compute_valence(label)
+        valences[node] = valence
         if valence == 'positive':
-            node_colors.append("#1f77b4")  # Blue
+            node_colors[node] = "#1f77b4"  # Blue
         elif valence == 'negative':
-            node_colors.append("#d62728")  # Red
+            node_colors[node] = "#d62728"  # Red
         else:
-            node_colors.append("#7f7f7f")  # Grey
-    
-    # Calculate maximum number of nodes to align y positions
-    max_nodes = max(len(subjects), len(verbs), len(objects))
-    
-    # Set positions
+            node_colors[node] = "#7f7f7f"  # Grey
+
+    # Find connected components
+    sentences = []
+    for v in verbs:
+        s_nodes = set()
+        for s in subjects:
+            if G.has_edge(s, v):
+                s_nodes.add(s)
+        o_nodes = set()
+        for o in objects:
+            if G.has_edge(v, o):
+                o_nodes.add(o)
+        if s_nodes or o_nodes:
+            sentences.append((s_nodes, {v}, o_nodes))
+
+    # Position calculation with increased spacing
     pos = {}
-    y_max = max_nodes
-    y_min = 1  # Start from 1 to avoid zero position
-    
-    # Helper function to set positions
-    def set_positions(nodes, x_pos):
-        n = len(nodes)
-        if n > 1:
-            y_positions = np.linspace(y_max, y_min, n)
+    spacing = 1.5  # Increased from 1.2 for more space between subgraphs
+
+    def get_available_position(base_x, base_y, existing_positions, x_range=0.35, tolerance=0.35):
+        x = base_x + np.random.uniform(-x_range, x_range)
+        y = base_y
+        attempts = 0
+        while attempts < 50 and any(abs(ex_y - y) < tolerance and abs(ex_x - x) < tolerance
+                                  for ex_x, ex_y in existing_positions.values()):
+            x = base_x + np.random.uniform(-x_range, x_range)
+            y += spacing * 0.3  # Increased from 0.25 for more vertical spacing
+            attempts += 1
+        return x, y
+
+    # Initial positioning with more spread between sentences
+    sentence_base_y = -2
+    for s_nodes, v_nodes, o_nodes in sentences:
+        # Increase vertical gap between subgraphs
+        sentence_base_y += spacing * 1.2  # Increased multiplier for more space between subgraphs
+        
+        # Add some random variation to prevent perfect alignment
+        base_y = sentence_base_y + np.random.uniform(-0.2, 0.2)
+
+        # Position subjects with more vertical spread
+        for s in s_nodes:
+            x, y = get_available_position(-1, base_y + np.random.uniform(-0.4, 0.4), pos)  # Increased range
+            pos[s] = (x, y)
+
+        # Position verbs
+        for v in v_nodes:
+            x, y = get_available_position(0, base_y, pos, x_range=0.25)
+            pos[v] = (x, y)
+
+        # Position objects with more vertical spread
+        for o in o_nodes:
+            x, y = get_available_position(1, base_y + np.random.uniform(-0.4, 0.4), pos)  # Increased range
+            pos[o] = (x, y)
+
+    # Position remaining nodes
+    remaining_nodes = set(G.nodes()) - set(pos.keys())
+    for node in remaining_nodes:
+        if node in subjects:
+            base_x, base_y = -1, sentence_base_y + np.random.uniform(-spacing, spacing)
+        elif node in verbs:
+            base_x, base_y = 0, sentence_base_y + np.random.uniform(-spacing, spacing)
         else:
-            y_positions = [(y_max + y_min) / 2]
-        for i, node in enumerate(nodes):
-            pos[node] = (x_pos, y_positions[i])
-    
-    # Set positions for subjects, verbs, and objects
-    set_positions(subjects, x_pos=0)
-    set_positions(verbs, x_pos=1)
-    set_positions(objects, x_pos=2)
-    
-    # Collect all y positions for setting plot limits
-    all_y_positions = [pos[node][1] for node in pos]
-    min_y = min(all_y_positions) - 1  # Padding
-    max_y = max(all_y_positions) + 1  # Padding
-    
-    # Determine if the graph is weighted
-    is_weighted = any('weight' in data for _, _, data in G.edges(data=True))
-    
-    # Get edge weights; default to 1 if not specified
-    edge_counts = nx.get_edge_attributes(G, 'weight')
-    if not edge_counts:
-        edge_counts = {edge: 1 for edge in G.edges()}
-    
-    # Calculate min and max edge widths
-    max_count = max(edge_counts.values())
-    # Adjusted min and max widths to be closer
-    min_width = (6 if is_weighted else 3) * (figsize[0] / 12)
-    max_width = (10 if is_weighted else 3) * (figsize[0] / 12)
-    
-    # Draw edges with varying thickness, colors, and styles
-    for start, end, data in G.edges(data=True):
-        count = edge_counts.get((start, end), 1)
-        start_label = G.nodes[start].get('label', start)
-        end_label = G.nodes[end].get('label', end)
-        
-        start_valence = valences[start]
-        end_valence = valences[end]
-        
+            base_x, base_y = 1, sentence_base_y + np.random.uniform(-spacing, spacing)
+        x, y = get_available_position(base_x, base_y, pos)
+        pos[node] = (x, y)
+
+    # Draw edges
+    for (u, v, data) in G.edges(data=True):
+        # Determine edge style based on node types
+        start_type = G.nodes[u].get('type', set())
+        end_type = G.nodes[v].get('type', set())
+
+        if ('subject' in start_type and 'subject' in end_type) or \
+           ('object' in start_type and 'object' in end_type):
+            style = '--'
+        else:
+            style = '-'
+
         # Determine edge color based on valence of start and end nodes
+        start_valence = valences[u]
+        end_valence = valences[v]
+
         if data.get('relation') == 'synonym':
             color = '#009E73'  # Green
         else:
@@ -174,54 +194,37 @@ def plot_graph(G):
                 color = "#dc9f9e"  # Grayish red
             else:
                 color = "#7f7f7f"  # Grey
-        
-        # Calculate edge width
-        edge_width = min_width + (count / max_count) * (max_width - min_width)
-        
-        # Determine edge style
-        start_type = G.nodes[start].get('type', set())
-        end_type = G.nodes[end].get('type', set())
-        if 'subject' in start_type and 'subject' in end_type:
-            style = 'dashed'
-        elif 'object' in start_type and 'object' in end_type:
-            style = 'dashed'
-        else:
-            style = 'solid'
-    
-        nx.draw_networkx_edges(
-            G, pos, edgelist=[(start, end)], width=edge_width, alpha=0.45, edge_color=color, style=style, arrows=False
-        )
-    
-    # Draw labels with custom rectangular backgrounds
-    # Calculate label font size
-    width, height = figsize
-    reference_width = 10  # Reference width for scaling
-    base_font_size = 10 - height * 0.07
-    scaled_font_size = base_font_size * (width / reference_width)
-    
-    # Prepare labels using 'label' attribute
-    labels_dict = {node: attr.get('label', node) for node, attr in G.nodes(data=True)}
-    labels = nx.draw_networkx_labels(G, pos, labels=labels_dict, font_size=scaled_font_size, font_color="white")
-    
-    # Customize label backgrounds to be rectangular
-    for node, label in labels.items():
-        color = node_colors[list(G.nodes()).index(node)]
-        label.set_bbox(
-            dict(
-                facecolor=color,
-                edgecolor="none",
-                alpha=0.9,
-                pad=0.6,
-                boxstyle="square",  # Makes the label background rectangular
-                )
-            )
-    
-    # Add group titles
-    y_title = max_y + 0.5
-    plt.text(0, y_title, 'Who', fontsize=16, ha='center')
-    plt.text(1, y_title, 'Did', fontsize=16, ha='center')
-    plt.text(2, y_title, 'What', fontsize=16, ha='center')
-    
+
+        plt.plot([pos[u][0], pos[v][0]],
+                [pos[u][1], pos[v][1]],
+                style,
+                color=color,
+                alpha=0.3,
+                linewidth=1)
+
+    # Draw labels with rectangular backgrounds
+    for node in G.nodes():
+        x, y = pos[node]
+        label = G.nodes[node].get('label', node)
+        color = node_colors[node]
+
+        bbox_props = dict(boxstyle="square,pad=0.3", fc=color, ec="none", alpha=0.9)
+        plt.text(x, y, label, color='white',
+                horizontalalignment='center',
+                verticalalignment='center',
+                bbox=bbox_props,
+                fontsize=10)
+
+
+    # Add column labels (increase the 0.5 to a larger value, like 1.0)
+    plt.text(-1, max(pos.values(), key=lambda x: x[1])[1] + 2.0, 'WHO', fontsize=20, ha='center')
+    plt.text(0, max(pos.values(), key=lambda x: x[1])[1] + 2.0, 'DID', fontsize=20, ha='center')
+    plt.text(1, max(pos.values(), key=lambda x: x[1])[1] + 2.0, 'WHAT', fontsize=20, ha='center')
+
+    # And adjust the y-axis limits accordingly (change y_max + 1 to y_max + 1.5)
+    y_max = max(pos.values(), key=lambda x: x[1])[1]
+    y_min = min(pos.values(), key=lambda x: x[1])[1]
+    plt.ylim(y_min - 0.5, y_max + 1.5)
     plt.axis('off')
-    plt.ylim(min_y, y_title + 1)
+    plt.tight_layout()
     plt.show()
