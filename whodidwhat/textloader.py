@@ -1,5 +1,5 @@
 import re
-from .nlp_utils import get_stanza_nlp
+from .nlp_utils import get_stanza_nlp, spacynlp
 from whodidwhat.resources import _COREFERENCE_NOUNS
 
 
@@ -71,6 +71,70 @@ def solve_coreferences(text, coref_solver='stanza'):
         output_text = stanza_solve_coreferences(doc)
     
     return output_text
+
+
+def fastcoref_solve_coreferences(text):
+    """
+    Replaces coreferent mentions with their representative texts in the text reconstructed from the doc.
+
+    Args:
+        text.
+
+    Returns:
+        str: The text with coreferences resolved.
+    """
+    from fastcoref import FCoref as OriginalFCoref
+    from transformers import AutoModel
+    import functools
+
+    
+    class PatchedFCoref(OriginalFCoref):
+        def __init__(self, *args, **kwargs):
+            original_from_config = AutoModel.from_config
+
+            def patched_from_config(config, *args, **kwargs):
+                kwargs['attn_implementation'] = 'eager'
+                return original_from_config(config, *args, **kwargs)
+
+            try:
+                AutoModel.from_config = functools.partial(patched_from_config, attn_implementation='eager')
+                super().__init__(*args, **kwargs)
+            finally:
+                AutoModel.from_config = original_from_config
+            
+            
+
+
+    model = PatchedFCoref(
+        nlp=spacynlp(),
+        device="cpu"
+    )
+
+    preds = model.predict(
+    text=text,
+    )
+
+    preds.get_clusters()
+
+    return preds
+
+
+
+    # Use doc.text to get the original text
+    original_text = doc.text
+
+    # List to hold the replacements (start_char, end_char, representative_text)
+    replacements = []
+
+    # Dictionary to keep track of active mentions per coreference chain
+    active_mentions = {}
+
+    # Iterate over sentences and words to build mentions
+    for sentence in doc.sentences:
+        for word in sentence.words:
+            if word.text.lower() not in _COREFERENCE_NOUNS:
+
+    return resolved_text
 
 
 def stanza_solve_coreferences(doc):
