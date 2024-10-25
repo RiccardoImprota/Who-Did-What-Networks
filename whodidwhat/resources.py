@@ -30,3 +30,10 @@ _VAGUE_ADJ = {
     "primary", "secondary", "tertiary", "minimal", "maximal", "optimal", "various", "countless", "innumerable", "limited",
     "extensive", "abundant", "scarce", "ample", "sparse", "much", "current"
     }
+
+_COREFERENCE_NOUNS = {
+        'he', 'she', 'they', 'it', 'him', 'her', 'them',
+        'his', 'hers', 'theirs', 'this', 'object', 'person', 'thing', 'city',
+        'item', 'place', 'country', 'animal', 'plant',
+        'my', 'your', 'our', 'their', 'his', 'her', 'its',
+    }

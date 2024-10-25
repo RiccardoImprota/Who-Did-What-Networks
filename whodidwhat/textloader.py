@@ -1,5 +1,6 @@
 import re
 from .nlp_utils import get_stanza_nlp
+from whodidwhat.resources import _COREFERENCE_NOUNS
 
 
 
@@ -91,16 +92,10 @@ def stanza_solve_coreferences(doc):
     # Dictionary to keep track of active mentions per coreference chain
     active_mentions = {}
 
-    words_to_replace = {
-        'he', 'she', 'they', 'it', 'him', 'her', 'them',
-        'his', 'hers', 'theirs', 'this', 'object', 'person', 'thing', 'city',
-        'item', 'place', 'country', 'animal', 'plant'
-    }
-
     # Iterate over sentences and words to build mentions
     for sentence in doc.sentences:
         for word in sentence.words:
-            if word.text.lower() not in words_to_replace:
+            if word.text.lower() not in _COREFERENCE_NOUNS:
               continue
             word_start = word.start_char
             word_end = word.end_char
