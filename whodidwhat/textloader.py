@@ -133,6 +133,7 @@ def fastcoref_solve_coreferences(text):
     for sentence in doc.sentences:
         for word in sentence.words:
             if word.text.lower() not in _COREFERENCE_NOUNS:
+                pass
 
     return resolved_text
 
