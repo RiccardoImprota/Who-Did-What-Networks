@@ -73,7 +73,7 @@ def solve_coreferences(text, coref_solver='stanza'):
     return output_text
 
 
-def fastcoref_solve_coreferences(text):
+def fastcoref_solve_coreferences(text_to_resolve):
     """
     Replaces coreferent mentions with their representative texts in the text reconstructed from the doc.
 
@@ -111,7 +111,7 @@ def fastcoref_solve_coreferences(text):
     )
 
     preds = model.predict(
-    text=text,
+    texts=text_to_resolve,
     )
 
     preds.get_clusters()
