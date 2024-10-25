@@ -1,5 +1,5 @@
 import re
-from .nlp_utils import get_stanza_nlp, spacynlp
+from .nlp_utils import get_stanza_nlp, get_spacy_nlp()
 from whodidwhat.resources import _COREFERENCE_NOUNS
 
 
@@ -106,7 +106,7 @@ def fastcoref_solve_coreferences(text):
 
 
     model = PatchedFCoref(
-        nlp=spacynlp(),
+        nlp=get_spacy_nlp()(),
         device="cpu"
     )
 
