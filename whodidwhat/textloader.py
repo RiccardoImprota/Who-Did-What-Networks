@@ -106,7 +106,7 @@ def fastcoref_solve_coreferences(text):
 
 
     model = PatchedFCoref(
-        nlp=get_spacy_nlp()(),
+        nlp=get_spacy_nlp(),
         device="cpu"
     )
 
