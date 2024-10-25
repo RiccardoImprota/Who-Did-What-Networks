@@ -1,5 +1,5 @@
 import re
-from .nlp_utils import get_stanza_nlp, get_spacy_nlp()
+from .nlp_utils import get_stanza_nlp, get_spacy_nlp
 from whodidwhat.resources import _COREFERENCE_NOUNS
 
 
