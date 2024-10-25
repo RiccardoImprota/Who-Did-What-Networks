@@ -76,7 +76,7 @@ def svo_to_graph(df, subject_filter=None):
 def plot_graph(G):
     num_nodes = G.number_of_nodes()
     # Scale figure size based on number of nodes
-    figsize = (max(12, 8 + (num_nodes**0.5) * 1.1), max(8, 5+ (num_nodes**0.5) * 0.9))
+    figsize = (max(12, 8 + (num_nodes**0.5) * 1.4), max(8, 5+ (num_nodes**0.5) * 1.15))
     plt.figure(figsize=figsize)
 
     # Separate nodes by type
@@ -114,9 +114,9 @@ def plot_graph(G):
 
     # Position calculation with increased spacing
     pos = {}
-    spacing = 1.5  # Increased from 1.2 for more space between subgraphs
+    spacing = 2  # Increased from 1.2 for more space between subgraphs
 
-    def get_available_position(base_x, base_y, existing_positions, x_range=0.35, tolerance=0.35):
+    def get_available_position(base_x, base_y, existing_positions, x_range=0.45, tolerance=0.85):
         x = base_x + np.random.uniform(-x_range, x_range)
         y = base_y
         attempts = 0
@@ -138,7 +138,7 @@ def plot_graph(G):
 
         # Position subjects with more vertical spread
         for s in s_nodes:
-            x, y = get_available_position(-1, base_y + np.random.uniform(-0.4, 0.4), pos)  # Increased range
+            x, y = get_available_position(-2, base_y + np.random.uniform(-0.4, 0.4), pos)  # Increased range
             pos[s] = (x, y)
 
         # Position verbs
@@ -148,18 +148,18 @@ def plot_graph(G):
 
         # Position objects with more vertical spread
         for o in o_nodes:
-            x, y = get_available_position(1, base_y + np.random.uniform(-0.4, 0.4), pos)  # Increased range
+            x, y = get_available_position(2, base_y + np.random.uniform(-0.4, 0.4), pos)  # Increased range
             pos[o] = (x, y)
 
     # Position remaining nodes
     remaining_nodes = set(G.nodes()) - set(pos.keys())
     for node in remaining_nodes:
         if node in subjects:
-            base_x, base_y = -1, sentence_base_y + np.random.uniform(-spacing, spacing)
+            base_x, base_y = -2, sentence_base_y + np.random.uniform(-spacing, spacing)
         elif node in verbs:
             base_x, base_y = 0, sentence_base_y + np.random.uniform(-spacing, spacing)
         else:
-            base_x, base_y = 1, sentence_base_y + np.random.uniform(-spacing, spacing)
+            base_x, base_y = 2, sentence_base_y + np.random.uniform(-spacing, spacing)
         x, y = get_available_position(base_x, base_y, pos)
         pos[node] = (x, y)
 
@@ -200,7 +200,7 @@ def plot_graph(G):
                 style,
                 color=color,
                 alpha=0.3,
-                linewidth=1)
+                linewidth=2)
 
     # Draw labels with rectangular backgrounds
     for node in G.nodes():
@@ -208,7 +208,7 @@ def plot_graph(G):
         label = G.nodes[node].get('label', node)
         color = node_colors[node]
 
-        bbox_props = dict(boxstyle="square,pad=0.3", fc=color, ec="none", alpha=0.9)
+        bbox_props = dict(boxstyle="round,pad=0.2,rounding_size=0.2", fc=color, ec="none", alpha=0.8)
         plt.text(x, y, label, color='white',
                 horizontalalignment='center',
                 verticalalignment='center',
@@ -217,14 +217,19 @@ def plot_graph(G):
 
 
     # Add column labels (increase the 0.5 to a larger value, like 1.0)
-    plt.text(-1, max(pos.values(), key=lambda x: x[1])[1] + 2.0, 'WHO', fontsize=20, ha='center')
+    plt.text(-2, max(pos.values(), key=lambda x: x[1])[1] + 2.0, 'WHO', fontsize=20, ha='center')
     plt.text(0, max(pos.values(), key=lambda x: x[1])[1] + 2.0, 'DID', fontsize=20, ha='center')
-    plt.text(1, max(pos.values(), key=lambda x: x[1])[1] + 2.0, 'WHAT', fontsize=20, ha='center')
+    plt.text(2, max(pos.values(), key=lambda x: x[1])[1] + 2.0, 'WHAT', fontsize=20, ha='center')
 
     # And adjust the y-axis limits accordingly (change y_max + 1 to y_max + 1.5)
     y_max = max(pos.values(), key=lambda x: x[1])[1]
     y_min = min(pos.values(), key=lambda x: x[1])[1]
     plt.ylim(y_min - 0.5, y_max + 1.5)
+    x_min = min(pos.values(), key=lambda x: x[0])[0]
+    x_max = max(pos.values(), key=lambda x: x[0])[0]
+    plt.xlim(x_min - 0.1, x_max + 0.1)
+
     plt.axis('off')
     plt.tight_layout()
     plt.show()
+
