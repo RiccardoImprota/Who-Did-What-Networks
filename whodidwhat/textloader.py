@@ -204,6 +204,9 @@ def stanza_solve_coreferences(doc):
                 chain_idx = min_coref_attachment.chain.index
                 rep_text = min_coref_attachment.chain.representative_text
 
+                if len(rep_text)>15:
+                    continue
+
                 if word.text in rep_text:
                   continue
 
