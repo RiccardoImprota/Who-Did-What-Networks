@@ -9,11 +9,11 @@ from nltk.corpus import wordnet as wn
 import pandas as pd
 
 
-def extract_svos_from_text(text):
+def extract_svos_from_text(text, coref_solver='fastcoref'):
     """
     Extract Subject-Verb-Object (SVO) triples from a given text.
     """
-    prepared_text = text_preparation(text)
+    prepared_text = text_preparation(text, coref_solver=coref_solver)
     doc = spacynlp(prepared_text)
     svos = extract_svos(doc)
     return svos

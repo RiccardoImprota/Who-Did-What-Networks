@@ -4,7 +4,7 @@ from whodidwhat.resources import _COREFERENCE_NOUNS
 
 
 
-def text_preparation(text,clean=True):
+def text_preparation(text,clean=True, coref_solver='fastcoref'):
     """
     Prepares the text for further processing by cleaning it and resolving coreferences.
     
@@ -19,7 +19,7 @@ def text_preparation(text,clean=True):
     cleaned_text = clean_text(text)
 
     # Solve coreferences
-    resolved_text = solve_coreferences(cleaned_text, coref_solver='stanza')
+    resolved_text = solve_coreferences(cleaned_text, coref_solver='fastcoref')
 
     return resolved_text
 
@@ -48,16 +48,15 @@ def clean_text(text):
 
     return cleaned_text
 
-def solve_coreferences(text, coref_solver='stanza'):
+def solve_coreferences(text, coref_solver='fastcoref'):
     """
     Resolves coreferences in a given text using either the Stanza library or fastcoref.
 
     Args:
         text (str): The input text to resolve coreferences in.
+        coref_solver (str): The coreference solver to use. Currently supports 'stanza' and 'fastcoref'.
     Return:
         str: The text with coreferences resolved.
-    
-    CURRENTLY SUPPORTS STANZA ONLY
     """
 
     if coref_solver!='stanza':
@@ -69,6 +68,9 @@ def solve_coreferences(text, coref_solver='stanza'):
         # Process the text
         doc = stanzanlp(text)
         output_text = stanza_solve_coreferences(doc)
+    
+    if coref_solver=='fastcoref':
+        output_text = fastcoref_solve_coreferences(text)
     
     return output_text
 
