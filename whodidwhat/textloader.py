@@ -10,6 +10,7 @@ def text_preparation(text,clean=True, coref_solver='fastcoref'):
     
     Parameters:
     text (str): The input text to prepare.
+    coref_solver (str): The coreference solver to use. Currently supports 'stanza' and 'fastcoref'. If None, coreferences are not resolved.
 
     Returns:
     str: The prepared text with coreferences resolved.
@@ -17,6 +18,9 @@ def text_preparation(text,clean=True, coref_solver='fastcoref'):
 
     # Clean the text
     cleaned_text = clean_text(text)
+
+    if coref_solver=None:
+        return cleaned_text
 
     # Solve coreferences
     resolved_text = solve_coreferences(cleaned_text, coref_solver=coref_solver)
