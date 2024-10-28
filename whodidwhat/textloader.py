@@ -19,7 +19,7 @@ def text_preparation(text,clean=True, coref_solver='fastcoref'):
     cleaned_text = clean_text(text)
 
     # Solve coreferences
-    resolved_text = solve_coreferences(cleaned_text, coref_solver='fastcoref')
+    resolved_text = solve_coreferences(cleaned_text, coref_solver=coref_solver)
 
     return resolved_text
 
