@@ -86,6 +86,7 @@ def fastcoref_solve_coreferences(text_to_resolve):
     from fastcoref import FCoref as OriginalFCoref
     from transformers import AutoModel
     import functools
+    import re
 
     
     class PatchedFCoref(OriginalFCoref):
@@ -114,29 +115,59 @@ def fastcoref_solve_coreferences(text_to_resolve):
     texts=text_to_resolve,
     )
 
-    preds.get_clusters()
+    clusters_positions = preds.get_clusters(as_strings=False)
+    clusters_strings = preds.get_clusters()
+    text_to_resolve = text_to_resolve
 
-    return preds
+    # Build a list of replacements
+    replacements = []  # Each item: (start_pos, end_pos, replacement_text)
 
+    for cluster_idx, cluster in enumerate(clusters_positions):
+        mentions_positions = cluster  # List of (start_char, end_char)
+        mentions_texts = clusters_strings[cluster_idx]  # Corresponding list of mention texts
 
+        # Build a list of mentions with their positions and texts
+        mentions = []
+        for pos, text_mention in zip(mentions_positions, mentions_texts):
+            start, end = pos
+            mention_text = text_mention
+            mentions.append({'start': start, 'end': end, 'text': mention_text})
 
-    # Use doc.text to get the original text
-    original_text = doc.text
+        # Identify mentions containing words in COREFERENCE_NOUNS
+        mentions_with_coref_nouns = []
+        for mention in mentions:
+            words_in_mention = re.findall(r'\b\w+\b', mention['text'].lower())
+            if any(word in COREFERENCE_NOUNS for word in words_in_mention):
+                mentions_with_coref_nouns.append(mention)
 
-    # List to hold the replacements (start_char, end_char, representative_text)
-    replacements = []
+        if mentions_with_coref_nouns:
+            # Find a replacement mention that does not contain any word in COREFERENCE_NOUNS
+            replacement_mentions = []
+            for m in mentions:
+                words_in_mention = re.findall(r'\b\w+\b', m['text'].lower())
+                if not any(word in COREFERENCE_NOUNS for word in words_in_mention):
+                    replacement_mentions.append(m)
+            if not replacement_mentions:
+                # If no replacement mention is available, skip this cluster
+                continue
+            # Prefer the earliest mention in the text
+            replacement_mentions.sort(key=lambda m: (m['start'], -len(m['text'])))
+            replacement_text = replacement_mentions[0]['text']
+            # For each mention with COREFERENCE_NOUNS, record the replacement
+            for mention in mentions_with_coref_nouns:
+                replacements.append({'start': mention['start'], 'end': mention['end'], 'replacement': replacement_text})
 
-    # Dictionary to keep track of active mentions per coreference chain
-    active_mentions = {}
+    # Sort replacements in reverse order of start positions
+    replacements.sort(key=lambda x: x['start'], reverse=True)
 
-    # Iterate over sentences and words to build mentions
-    for sentence in doc.sentences:
-        for word in sentence.words:
-            if word.text.lower() not in _COREFERENCE_NOUNS:
-                pass
+    # Apply replacements to the text
+    for repl in replacements:
+        start = repl['start']
+        end = repl['end']
+        replacement_text = repl['replacement']
+        text_to_resolve = text_to_resolve[:start] + replacement_text + text_to_resolve[end:]
 
-    return resolved_text
-
+    return text_to_resolve
 
 def stanza_solve_coreferences(doc):
     """
