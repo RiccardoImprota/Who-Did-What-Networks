@@ -59,8 +59,8 @@ def solve_coreferences(text, coref_solver='fastcoref'):
         str: The text with coreferences resolved.
     """
 
-    if coref_solver!='stanza':
-        raise ValueError("Only Stanza coreference solver is supported at the moment.")
+    if coref_solver not in {'stanza', 'fastcoref'}:
+        raise ValueError("Only stanza and fastcoref coreference solvers are supported at the moment.")
     
     if coref_solver=='stanza':
         # Load the Stanza pipeline
