@@ -315,10 +315,20 @@ def get_verb_subjects(verb):
             subjects.append((main_part, prep_parts))
         return subjects
     
-    # Direct subjects of the verb
+    # Check for agents (e.g., "by John")
+    agents = [child for child in verb.children if child.dep_ == 'agent']
+    if agents:
+        for agent in agents:
+            agent_pobjs = [grandchild for grandchild in agent.children if grandchild.dep_ == 'pobj']
+            for agent_pobj in agent_pobjs:
+                subjects.extend(extract_subjects(agent_pobj))
+        if subjects:
+            return subjects  # Use agents as subjects
+
+    # If no agent, use nsubjpass or nsubj
     direct_subjects = [
         child for child in verb.children
-        if child.dep_ in {'nsubj'}
+        if child.dep_ in {'nsubjpass', 'nsubj'}
     ]
 
     for subj in direct_subjects:
@@ -542,66 +552,81 @@ def extract_clause(token):
 
 def get_verb_objects(verb):
     """
-    Retrieve the objects of a given verb, including through coordination and inheritance.
-    Coordination refers to when multiple objects are linked by a conjunction (e.g., "and" or "or") and share the same verb.
-    Inheritance occurs when an object is implied from a previous clause or sentence and applies to a following verb without being explicitly repeated.
-
-    For compound nouns, each component is included separately.
+    Retrieve the objects of a given verb, considering passive voice and the presence of agents.
+    This function handles various cases to accurately extract objects, including:
+    - Direct objects
+    - Indirect objects
+    - Objects in prepositional phrases
+    - Passive constructions with or without agents
+    - Clausal complements
+    - Objects from xcomp dependencies
+    - Inheritance from conjoined verbs
 
     Args:
         verb (spacy.tokens.Token): The verb token.
 
     Returns:
-        List[str]: A list of object lemmas.
+        List[Tuple[str, List[str]]]: A list of tuples containing the main object and its prepositional phrases.
     """
     objects = []
-
-    ## Handle passive sentences: treat 'nsubjpass' as object
-    #nsubjpass = [child for child in verb.children if child.dep_ == 'nsubjpass']
-    #for obj in nsubjpass:
-    #    objects.extend(extract_objects(obj))
 
     # Helper function to process and extend objects list, including conjuncts
     def process_objects(object_tokens):
         for obj in object_tokens:
             objects.extend(extract_objects(obj))
 
-    # 1. Direct Objects (e.g., "eat an apple")
-    direct_objects = [child for child in verb.children if child.dep_ in {'dobj', 'attr', 'oprd','acomp'}]
-    process_objects(direct_objects)
-
-    # 2. Indirect Objects (e.g., "give me the book")
-    indirect_objects = [child for child in verb.children if child.dep_ == 'iobj']
-    process_objects(indirect_objects)
-
-    # 3. Objects in Prepositional Phrases (e.g., "look at the sky")
-    prep_phrases = [child for child in verb.children if child.dep_ == 'prep']
-    for prep in prep_phrases:
-        # Handles Conjuncts in Prepositional Phrases
-        preps = get_conjuncts(prep)
-        for p in preps:
-            pobj = [child for child in p.children if child.dep_ == 'pobj']
-            process_objects(pobj)
-
-    # 4. Objects via Dependency Relations (e.g., in passive constructions)
-    if verb.tag_ in {'VBN', 'VBD'} and any(child.dep_ == 'nsubjpass' for child in verb.children):
+    # Check if the verb has an agent (passive voice with agent)
+    agents = [child for child in verb.children if child.dep_ == 'agent']
+    if agents:
+        # If there's an agent, treat the nsubjpass as the object
         nsubjpass = [child for child in verb.children if child.dep_ == 'nsubjpass']
         process_objects(nsubjpass)
+    else:
+        # Proceed with standard object extraction
+        # 1. Direct Objects (e.g., "eat an apple")
+        direct_objects = [child for child in verb.children if child.dep_ in {'dobj', 'attr', 'oprd', 'acomp'}]
+        process_objects(direct_objects)
 
-    # 5. Objects in Noun Phrase Adverbial Modifiers
-    npadvmod_objects = [child for child in verb.children if (child.dep_ == 'npadvmod') and (child.pos_ in ('PROPN', 'PRON'))]
+        # 2. Indirect Objects (e.g., "give me the book")
+        indirect_objects = [child for child in verb.children if child.dep_ == 'iobj']
+        process_objects(indirect_objects)
+
+        # 3. Objects in Prepositional Phrases (e.g., "look at the sky")
+        prep_phrases = [child for child in verb.children if child.dep_ == 'prep']
+        for prep in prep_phrases:
+            # Handles Conjuncts in Prepositional Phrases
+            preps = get_conjuncts(prep)
+            for p in preps:
+                pobj = [child for child in p.children if child.dep_ == 'pobj']
+                process_objects(pobj)
+
+        # 4. If no direct objects, include prepositional phrases as objects
+        if not objects:
+            for prep in prep_phrases:
+                prep_text = prep.text
+                pobj = [child for child in prep.children if child.dep_ == 'pobj']
+                for obj in pobj:
+                    main_part, prep_parts = get_compound_parts(obj)
+                    full_object = prep_text + ' ' + main_part
+                    objects.append((full_object, prep_parts))
+
+    # 5. Objects in Noun Phrase Adverbial Modifiers (e.g., "He arrived yesterday")
+    npadvmod_objects = [child for child in verb.children if (child.dep_ == 'npadvmod') and (child.pos_ in {'PROPN', 'PRON', 'NOUN'})]
     process_objects(npadvmod_objects)
 
     # 6. Handle clausal complements (ccomp)
     for child in verb.children:
-        if child.dep_ in {'ccomp'}:
+        if child.dep_ == 'ccomp':
             # Include the subject of the ccomp as the object of the main verb
-            ccomp_subjs = [c for c in child.children if c.dep_ in {'nsubj', 'nsubjpass'}]
+            ccomp_subjs = [c for c in child.children if c.dep_ == 'nsubj']  # Exclude 'nsubjpass'
             for subj in ccomp_subjs:
                 subj_texts = extract_subjects(subj)
                 objects.extend(subj_texts)
+            # Optionally, include the entire clause as an object
+            clause = extract_clause(child)
+            objects.append((clause, []))  # No preps in clause
 
-    # Handle xcomp dependencies: include objects from xcomp verb
+    # 7. Handle xcomp dependencies: include objects from xcomp verb
     xcomp_children = [child for child in verb.children if child.dep_ == 'xcomp']
     for xcomp_child in xcomp_children:
         xcomp_objects = get_verb_objects(xcomp_child)
@@ -610,10 +635,9 @@ def get_verb_objects(verb):
         else:
             # If no objects found, try to get direct objects from the xcomp verb
             xcomp_dobjs = [child for child in xcomp_child.children if child.dep_ in {'dobj', 'attr', 'oprd'}]
-            for obj in xcomp_dobjs:
-                objects.extend(extract_objects(obj))
+            process_objects(xcomp_dobjs)
 
-    # Inherit objects from conjoined verbs if none found
+    # 8. Inherit objects from conjoined verbs if none found
     if not objects:
         for child in verb.children:
             if child.dep_ == 'conj' and child.pos_ == 'VERB':
@@ -622,8 +646,8 @@ def get_verb_objects(verb):
                     objects.extend(conj_objects)
                     break  # Avoid duplicates by stopping after the first found
 
-    # Remove duplicates while preserving order
     return objects
+
 
 
 def extract_objects(object_token):
