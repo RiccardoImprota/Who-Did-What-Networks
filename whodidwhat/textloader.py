@@ -135,19 +135,19 @@ def fastcoref_solve_coreferences(text_to_resolve):
             mention_text = text_mention
             mentions.append({'start': start, 'end': end, 'text': mention_text})
 
-        # Identify mentions containing words in COREFERENCE_NOUNS
+        # Identify mentions containing words in _COREFERENCE_NOUNS
         mentions_with_coref_nouns = []
         for mention in mentions:
             words_in_mention = re.findall(r'\b\w+\b', mention['text'].lower())
-            if any(word in COREFERENCE_NOUNS for word in words_in_mention):
+            if any(word in _COREFERENCE_NOUNS for word in words_in_mention):
                 mentions_with_coref_nouns.append(mention)
 
         if mentions_with_coref_nouns:
-            # Find a replacement mention that does not contain any word in COREFERENCE_NOUNS
+            # Find a replacement mention that does not contain any word in _COREFERENCE_NOUNS
             replacement_mentions = []
             for m in mentions:
                 words_in_mention = re.findall(r'\b\w+\b', m['text'].lower())
-                if not any(word in COREFERENCE_NOUNS for word in words_in_mention):
+                if not any(word in _COREFERENCE_NOUNS for word in words_in_mention):
                     replacement_mentions.append(m)
             if not replacement_mentions:
                 # If no replacement mention is available, skip this cluster
@@ -155,7 +155,7 @@ def fastcoref_solve_coreferences(text_to_resolve):
             # Prefer the earliest mention in the text
             replacement_mentions.sort(key=lambda m: (m['start'], -len(m['text'])))
             replacement_text = replacement_mentions[0]['text']
-            # For each mention with COREFERENCE_NOUNS, record the replacement
+            # For each mention with _COREFERENCE_NOUNS, record the replacement
             for mention in mentions_with_coref_nouns:
                 replacements.append({'start': mention['start'], 'end': mention['end'], 'replacement': replacement_text})
 
