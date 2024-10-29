@@ -245,7 +245,7 @@ def extract_svos(doc):
             })
 
     # Create DataFrame
-    df = pd.DataFrame(data_rows, columns=['Node 1', 'WDW', 'Node 2', 'WDW2', 'Hypergraph', 'Semantic-Syntactic'])
+    df = pd.DataFrame(data_rows, columns=['Node 1', 'WDW', 'Node 2', 'WDW2', 'Hypergraph', 'Semantic-Syntactic','svo_id'])
 
     return df
 
