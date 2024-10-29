@@ -228,7 +228,7 @@ def extract_svos(doc):
                 'WDW2': 'Who',
                 'Hypergraph': 'N/A',
                 'Semantic-Syntactic': 1,
-                'svo_id':svo_id
+                'svo_id':'N/A'
             })
 
     # Similarly for objects
@@ -242,7 +242,7 @@ def extract_svos(doc):
                 'WDW2': 'What',
                 'Hypergraph': 'N/A',
                 'Semantic-Syntactic': 1,
-                'svo_id':svo_id
+                'svo_id': 'N/A'
             })
 
     # Create DataFrame
