@@ -146,8 +146,8 @@ def extract_svos(doc):
     data_rows = []
 
     # Process SVO triples to create DataFrame rows
+    svo_id=0
     for svo in svo_triples:
-        svo_id=0
         subjects, verbs, objects = svo
         hypergraph = str(svo)
 
