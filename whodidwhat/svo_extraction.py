@@ -7,6 +7,7 @@ from .nlp_utils import spacynlp, compute_valence
 from itertools import combinations, chain
 from nltk.corpus import wordnet as wn
 import pandas as pd
+from collections import defaultdict
 
 
 def extract_svos_from_text(text, coref_solver='fastcoref'):
