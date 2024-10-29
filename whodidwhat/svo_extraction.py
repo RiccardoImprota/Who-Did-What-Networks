@@ -205,6 +205,7 @@ def extract_svos(doc):
                     'Semantic-Syntactic': 0,
                     'svo_id':svo_id
                 })
+        svo_id+=1
 
     # Now, process for semantic relations (Semantic-Syntactic = 1)
     # Collect all subjects and objects across all SVOs
