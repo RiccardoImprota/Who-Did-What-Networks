@@ -22,6 +22,23 @@ def extract_svos_from_text(text, coref_solver='fastcoref'):
 ## Stuff to extract svos. 
 ################################################################################################
 
+def export_hypergraphs(df):
+    """
+    Extracts a set of all unique hypergraphs from the DataFrame where Semantic-Syntactic is 0.
+    
+    Args:
+        df (pandas.DataFrame): DataFrame containing the hypergraph data
+        
+    Returns:
+        set: A set of unique hypergraph strings
+    """
+    # Filter rows where Semantic-Syntactic is 0 and get unique hypergraphs
+    hypergraphs = set(df[df['Semantic-Syntactic'] == 0]['Hypergraph'].unique())
+    
+    # Remove 'N/A' if present since it's not a real hypergraph
+    hypergraphs.discard('N/A')
+    
+    return hypergraphs
 
 
 def export_subj(df):
