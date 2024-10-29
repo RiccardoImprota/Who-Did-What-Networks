@@ -44,7 +44,7 @@ def svo_to_graph(df, subject_filter=None, object_filter=None):
         # Filter the DataFrame to include all rows that are in these hypergraphs
         df = df[df['Hypergraph'].isin(relevant_hypergraphs)]
 
-    if subject_filter is not None:
+    if object_filter is not None:
         # Identify all unique hypergraphs that contain the subject_filter in 'Node 1'
         relevant_hypergraphs = df.loc[df['Node 2'] == object_filter, 'Hypergraph'].unique()
         # Filter the DataFrame to include all rows that are in these hypergraphs
