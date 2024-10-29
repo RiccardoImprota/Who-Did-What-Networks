@@ -8,10 +8,10 @@ from whodidwhat.nlp_utils import compute_valence
 
 def plot_svo_graph(svo_list, subject_filter=None):
     """
-    Plot a graph of the SVO triples with subjects on the left, verbs in the center, and objects on the right.
+    Plot a graph of SVO data. 
 
     Args:
-        svo_list (list): A list of SVO triples.
+        svo_list (dataframe): a pandas DataFrame of SVO data.
         subject_filter (str): A subject to filter the graph by.
     """
     G = svo_to_graph(svo_list, subject_filter)
@@ -30,7 +30,7 @@ def add_node_with_type(G, node_id, label, node_type):
             G.nodes[node_id]['type'] = set([node_type])
     else:
         G.add_node(node_id, type=set([node_type]), label=label)
-        
+
 def svo_to_graph(df, subject_filter=None):
     """
     Convert a pandas DataFrame of SVO data into a graph.
@@ -67,11 +67,28 @@ def svo_to_graph(df, subject_filter=None):
         # Determine relation type based on 'Semantic-Syntactic' column
         relation_type = 'synonym' if sem_synt == 1 else 'syntactic'
 
-        # Add edge with attributes
-        G.add_edge(node1_id, node2_id, relation=relation_type, hypergraph=hypergraph)
+        if G.has_edge(node1_id, node2_id):
+            # Edge exists, update the 'relation' attribute
+            existing_relation = G.edges[node1_id, node2_id].get('relation', set())
+            if isinstance(existing_relation, str):
+                existing_relation = set([existing_relation])
+            existing_relation.add(relation_type)
+            G.edges[node1_id, node2_id]['relation'] = existing_relation
+            # Also update hypergraph
+            existing_hypergraph = G.edges[node1_id, node2_id].get('hypergraph', set())
+            if isinstance(existing_hypergraph, str):
+                existing_hypergraph = set([existing_hypergraph])
+            existing_hypergraph.add(hypergraph)
+            G.edges[node1_id, node2_id]['hypergraph'] = existing_hypergraph
+            # Increment weight for syntactic relations
+            if relation_type == 'syntactic':
+                G.edges[node1_id, node2_id]['weight'] += 1
+        else:
+            # Initialize weight to 1 for syntactic relations
+            weight = 1 if relation_type == 'syntactic' else 0
+            G.add_edge(node1_id, node2_id, relation=set([relation_type]), hypergraph=set([hypergraph]), weight=weight)
 
     return G
-
 
 def plot_graph(G):
     num_nodes = G.number_of_nodes()
@@ -163,6 +180,14 @@ def plot_graph(G):
         x, y = get_available_position(base_x, base_y, pos)
         pos[node] = (x, y)
 
+    # Collect weights of syntactic edges
+    syntactic_weights = [data['weight'] for u, v, data in G.edges(data=True) if 'syntactic' in data.get('relation', set())]
+    if syntactic_weights:
+        min_weight = min(syntactic_weights)
+        max_weight = max(syntactic_weights)
+    else:
+        min_weight = max_weight = 1
+
     # Draw edges
     for (u, v, data) in G.edges(data=True):
         # Determine edge style based on node types
@@ -179,9 +204,21 @@ def plot_graph(G):
         start_valence = valences[u]
         end_valence = valences[v]
 
-        if data.get('relation') == 'synonym':
-            color = '#009E73'  # Green
-        else:
+        relations = data.get('relation', set())
+        if isinstance(relations, str):
+            relations = set([relations])
+
+        # Determine whether to plot the edge based on the relations
+        if 'syntactic' in relations:
+            # Plot syntactic edge with weight-based linewidth
+            weight = data.get('weight', 1)
+            if min_weight == max_weight:
+                linewidth = 2  # Default linewidth if all weights are the same
+            else:
+                # Map weight to linewidth between 1 and 3
+                linewidth = 1 + 2 * (weight - min_weight) / (max_weight - min_weight)
+
+            # Determine edge color based on valence
             if start_valence == 'positive' and end_valence == 'positive':
                 color = "#1f77b4"  # Blue
             elif start_valence == 'negative' and end_valence == 'negative':
@@ -195,12 +232,28 @@ def plot_graph(G):
             else:
                 color = "#7f7f7f"  # Grey
 
-        plt.plot([pos[u][0], pos[v][0]],
-                [pos[u][1], pos[v][1]],
-                style,
-                color=color,
-                alpha=0.3,
-                linewidth=2)
+            plt.plot([pos[u][0], pos[v][0]],
+                     [pos[u][1], pos[v][1]],
+                     style,
+                     color=color,
+                     alpha=0.3,
+                     linewidth=linewidth)
+
+        elif 'synonym' in relations:
+            # Only plot semantic edge if there is no syntactic edge
+            linewidth = 2  # Semantic relations have fixed linewidth of 2
+            color = '#009E73'  # Green
+
+            plt.plot([pos[u][0], pos[v][0]],
+                     [pos[u][1], pos[v][1]],
+                     style,
+                     color=color,
+                     alpha=0.3,
+                     linewidth=linewidth)
+
+        else:
+            # No valid relation to plot
+            continue  # Skip this edge
 
     # Draw labels with rectangular backgrounds
     for node in G.nodes():
@@ -215,13 +268,12 @@ def plot_graph(G):
                 bbox=bbox_props,
                 fontsize=10)
 
-
-    # Add column labels (increase the 0.5 to a larger value, like 1.0)
+    # Add column labels
     plt.text(-2, max(pos.values(), key=lambda x: x[1])[1] + 2.0, 'WHO', fontsize=20, ha='center')
     plt.text(0, max(pos.values(), key=lambda x: x[1])[1] + 2.0, 'DID', fontsize=20, ha='center')
     plt.text(2, max(pos.values(), key=lambda x: x[1])[1] + 2.0, 'WHAT', fontsize=20, ha='center')
 
-    # And adjust the y-axis limits accordingly (change y_max + 1 to y_max + 1.5)
+    # Adjust the y-axis limits accordingly
     y_max = max(pos.values(), key=lambda x: x[1])[1]
     y_min = min(pos.values(), key=lambda x: x[1])[1]
     plt.ylim(y_min - 0.5, y_max + 1.5)
@@ -232,4 +284,3 @@ def plot_graph(G):
     plt.axis('off')
     plt.tight_layout()
     plt.show()
-
