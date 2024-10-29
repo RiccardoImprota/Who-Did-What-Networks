@@ -39,16 +39,17 @@ def svo_to_graph(df, subject_filter=None, object_filter=None):
     G = nx.Graph()
 
     if subject_filter is not None:
-        # Identify all unique hypergraphs that contain the subject_filter in 'Node 1'
-        relevant_hypergraphs = df.loc[df['Node 1'] == subject_filter, 'Hypergraph'].unique()
-        # Filter the DataFrame to include all rows that are in these hypergraphs
-        df = df[df['Hypergraph'].isin(relevant_hypergraphs)]
+        relevant_hypergraphs_subject = df.loc[
+            df['Node 1'].str.contains(subject_filter, case=False, na=False), 'Hypergraph'
+        ].unique()
+        df = df[df['Hypergraph'].isin(relevant_hypergraphs_subject)]
 
+    # Apply object filter with partial matching
     if object_filter is not None:
-        # Identify all unique hypergraphs that contain the subject_filter in 'Node 1'
-        relevant_hypergraphs = df.loc[df['Node 2'] == object_filter, 'Hypergraph'].unique()
-        # Filter the DataFrame to include all rows that are in these hypergraphs
-        df = df[df['Hypergraph'].isin(relevant_hypergraphs)]
+        relevant_hypergraphs_object = df.loc[
+            df['Node 2'].str.contains(object_filter, case=False, na=False), 'Hypergraph'
+        ].unique()
+        df = df[df['Hypergraph'].isin(relevant_hypergraphs_object)]
 
     for index, row in df.iterrows():
         node1 = row['Node 1']
