@@ -6,7 +6,7 @@ from nltk.corpus import wordnet as wn
 from whodidwhat.nlp_utils import compute_valence
 
 
-def plot_svo_graph(svo_list, subject_filter=None):
+def plot_svo_graph(svo_list, subject_filter=None, object_filter=None)):
     """
     Plot a graph of SVO data. 
 
@@ -31,7 +31,7 @@ def add_node_with_type(G, node_id, label, node_type):
     else:
         G.add_node(node_id, type=set([node_type]), label=label)
 
-def svo_to_graph(df, subject_filter=None):
+def svo_to_graph(df, subject_filter=None, object_filter=None):
     """
     Convert a pandas DataFrame of SVO data into a graph.
     Optionally filters the data based on the subject_filter.
@@ -41,6 +41,12 @@ def svo_to_graph(df, subject_filter=None):
     if subject_filter is not None:
         # Identify all unique hypergraphs that contain the subject_filter in 'Node 1'
         relevant_hypergraphs = df.loc[df['Node 1'] == subject_filter, 'Hypergraph'].unique()
+        # Filter the DataFrame to include all rows that are in these hypergraphs
+        df = df[df['Hypergraph'].isin(relevant_hypergraphs)]
+
+    if subject_filter is not None:
+        # Identify all unique hypergraphs that contain the subject_filter in 'Node 1'
+        relevant_hypergraphs = df.loc[df['Node 2'] == object_filter, 'Hypergraph'].unique()
         # Filter the DataFrame to include all rows that are in these hypergraphs
         df = df[df['Hypergraph'].isin(relevant_hypergraphs)]
 
