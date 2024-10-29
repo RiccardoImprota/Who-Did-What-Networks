@@ -6,7 +6,7 @@ from nltk.corpus import wordnet as wn
 from whodidwhat.nlp_utils import compute_valence
 
 
-def plot_svo_graph(svo_list, subject_filter=None, object_filter=None)):
+def plot_svo_graph(svo_list, subject_filter=None, object_filter=None):
     """
     Plot a graph of SVO data. 
 
