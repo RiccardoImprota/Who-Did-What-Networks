@@ -24,20 +24,31 @@ def extract_svos_from_text(text, coref_solver='fastcoref'):
 
 def export_hypergraphs(df):
     """
-    Extracts a set of all unique hypergraphs from the DataFrame where Semantic-Syntactic is 0.
+    Extracts hypergraphs from the DataFrame where Semantic-Syntactic is 0,
+    allowing duplicates across sentences but not within the same sentence.
     
     Args:
         df (pandas.DataFrame): DataFrame containing the hypergraph data
         
     Returns:
-        set: A set of unique hypergraph strings
+        list: A list of hypergraph strings, potentially with duplicates
     """
-    # Filter rows where Semantic-Syntactic is 0 and get unique hypergraphs
-    hypergraphs = set(df[df['Semantic-Syntactic'] == 0]['Hypergraph'].unique())
-    
-    # Remove 'N/A' if present since it's not a real hypergraph
-    hypergraphs.discard('N/A')
-    
+    # Assume we have a 'sentence_id' column in the DataFrame
+    # If not, you'll need to add logic to identify sentence boundaries
+
+    hypergraphs = []
+    sentence_hypergraphs = defaultdict(set)
+
+    # Filter rows where Semantic-Syntactic is 0
+    filtered_df = df[df['Semantic-Syntactic'] == 0]
+
+    # Group by sentence_id and collect hypergraphs
+    for svo_id, group in filtered_df.groupby('svo_id'):
+        for hypergraph in group['Hypergraph']:
+            if hypergraph != 'N/A' and hypergraph not in sentence_hypergraphs[svo_id]:
+                hypergraphs.append(hypergraph)
+                sentence_hypergraphs[svo_id].add(hypergraph)
+
     return hypergraphs
 
 
@@ -136,6 +147,7 @@ def extract_svos(doc):
 
     # Process SVO triples to create DataFrame rows
     for svo in svo_triples:
+        svo_id=0
         subjects, verbs, objects = svo
         hypergraph = str(svo)
 
@@ -150,7 +162,8 @@ def extract_svos(doc):
                     'Node 2': verb,
                     'WDW2': 'Did',
                     'Hypergraph': hypergraph,
-                    'Semantic-Syntactic': 0
+                    'Semantic-Syntactic': 0,
+                    'svo_id':svo_id
                 })
 
         # Create Verb-Object relations
@@ -163,7 +176,8 @@ def extract_svos(doc):
                     'Node 2': obj,
                     'WDW2': 'What',
                     'Hypergraph': hypergraph,
-                    'Semantic-Syntactic': 0
+                    'Semantic-Syntactic': 0,
+                    'svo_id':svo_id
                 })
 
         # Create Subject-Subject relations when multiple subjects are present
@@ -175,7 +189,8 @@ def extract_svos(doc):
                     'Node 2': subj2,
                     'WDW2': 'Who',
                     'Hypergraph': hypergraph,
-                    'Semantic-Syntactic': 0
+                    'Semantic-Syntactic': 0,
+                    'svo_id':svo_id
                 })
 
         # Create Object-Object relations when multiple objects are present
@@ -187,7 +202,8 @@ def extract_svos(doc):
                     'Node 2': obj2,
                     'WDW2': 'What',
                     'Hypergraph': hypergraph,
-                    'Semantic-Syntactic': 0
+                    'Semantic-Syntactic': 0,
+                    'svo_id':svo_id
                 })
 
     # Now, process for semantic relations (Semantic-Syntactic = 1)
@@ -210,7 +226,8 @@ def extract_svos(doc):
                 'Node 2': subj2,
                 'WDW2': 'Who',
                 'Hypergraph': 'N/A',
-                'Semantic-Syntactic': 1
+                'Semantic-Syntactic': 1,
+                'svo_id':svo_id
             })
 
     # Similarly for objects
@@ -223,7 +240,8 @@ def extract_svos(doc):
                 'Node 2': obj2,
                 'WDW2': 'What',
                 'Hypergraph': 'N/A',
-                'Semantic-Syntactic': 1
+                'Semantic-Syntactic': 1,
+                'svo_id':svo_id
             })
 
     # Create DataFrame
