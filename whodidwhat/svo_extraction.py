@@ -341,22 +341,22 @@ def get_verb_subjects(verb):
     # Handle acl and relcl dependencies
     if verb.dep_ in {'acl', 'relcl'}:
         # If the verb has its own subject, use it
-        nsubjs = [child.lemma_ for child in verb.children if child.dep_ == 'nsubj']
+        nsubjs = [child for child in verb.children if child.dep_ == 'nsubj']
         if nsubjs:
             for subj in nsubjs:
                 subjects.extend(extract_subjects(subj))
         else:
             # Otherwise, the subject is the noun the verb is modifying
-            modified_noun = verb.head.lemma_
+            modified_noun = verb.head
             main_part, prep_parts = get_compound_parts(modified_noun, lemmatize=True)
             subjects.append((main_part, prep_parts))
         return subjects
     
     # Check for agents (e.g., "by John")
-    agents = [child.lemma_ for child in verb.children if child.dep_ == 'agent']
+    agents = [child for child in verb.children if child.dep_ == 'agent']
     if agents:
         for agent in agents:
-            agent_pobjs = [grandchild.lemma_ for grandchild in agent.children if grandchild.dep_ == 'pobj']
+            agent_pobjs = [grandchild for grandchild in agent.children if grandchild.dep_ == 'pobj']
             for agent_pobj in agent_pobjs:
                 subjects.extend(extract_subjects(agent_pobj))
         if subjects:
@@ -364,7 +364,7 @@ def get_verb_subjects(verb):
 
     # If no agent, use nsubjpass or nsubj
     direct_subjects = [
-        child.lemma_ for child in verb.children
+        child for child in verb.children
         if child.dep_ in {'nsubjpass', 'nsubj'}
     ]
 
@@ -443,7 +443,7 @@ def extract_subjects(subject_token):
 
     # Additionally, handle conjunct subjects (e.g., "Alice and Bob")
     conjunct_subjects = [
-        conj.lemma_ for conj in subject_token.conjuncts
+        conj for conj in subject_token.conjuncts
         if conj.pos_ in {'NOUN', 'PROPN', 'PRON'}
     ]
     for conj in conjunct_subjects:
@@ -486,8 +486,8 @@ def get_compound_parts(token, lemmatize=True):
     for child in token.children:
         if child.dep_ in {'acl', 'relcl'}:
             # Include the 'mark' (e.g., 'that')
-            markers = [t.lemma_ for t in child.children if t.dep_ == 'mark']
-            parts.extend([t.lemma_ if lemmatize else t.lemma_ for t in markers])
+            markers = [t for t in child.children if t.dep_ == 'mark']
+            parts.extend([t.lemma_ if lemmatize else t.text for t in markers])
 
             # Include the 'nsubj' of the 'acl' verb
             nsubjs = [t for t in child.children if t.dep_ == 'nsubj']
@@ -538,7 +538,7 @@ def get_compound_parts(token, lemmatize=True):
         # Process the preposition and its conjuncts
         prep_conjuncts = [prep] + list(prep.conjuncts)
         for p in prep_conjuncts:
-            prep_phrase = [p.lemma_]  # Add the preposition
+            prep_phrase = [p.text]  # Add the preposition
             pobj_list = [child for child in p.children if child.dep_ == 'pobj']
             for pobj in pobj_list:
                 # Process the pobj and its conjuncts
@@ -609,53 +609,53 @@ def get_verb_objects(verb):
 
     # Helper function to process and extend objects list, including conjuncts
     def process_objects(object_tokens):
-        for obj.lemma_ in object_tokens:
+        for obj in object_tokens:
             objects.extend(extract_objects(obj))
 
     # Check if the verb has an agent (passive voice with agent)
-    agents = [child.lemma_ for child in verb.children if child.dep_ == 'agent']
+    agents = [child for child in verb.children if child.dep_ == 'agent']
     if agents:
         # If there's an agent, treat the nsubjpass as the object
-        nsubjpass = [child.lemma_ for child in verb.children if child.dep_ == 'nsubjpass']
+        nsubjpass = [child for child in verb.children if child.dep_ == 'nsubjpass']
         process_objects(nsubjpass)
     else:
         # Proceed with standard object extraction
         # 1. Direct Objects (e.g., "eat an apple")
-        direct_objects = [child.lemma_ for child in verb.children if child.dep_ in {'dobj', 'attr', 'oprd', 'acomp'}]
+        direct_objects = [child for child in verb.children if child.dep_ in {'dobj', 'attr', 'oprd', 'acomp'}]
         process_objects(direct_objects)
 
         # 2. Indirect Objects (e.g., "give me the book")
-        indirect_objects = [child.lemma_ for child in verb.children if child.dep_ == 'iobj']
+        indirect_objects = [child for child in verb.children if child.dep_ == 'iobj']
         process_objects(indirect_objects)
 
         # 3. Objects in Prepositional Phrases (e.g., "look at the sky")
-        prep_phrases = [child.lemma_ for child in verb.children if child.dep_ == 'prep']
+        prep_phrases = [child for child in verb.children if child.dep_ == 'prep']
         for prep in prep_phrases:
             # Handles Conjuncts in Prepositional Phrases
             preps = get_conjuncts(prep)
             for p in preps:
-                pobj = [child.lemma_ for child in p.children if child.dep_ == 'pobj']
+                pobj = [child for child in p.children if child.dep_ == 'pobj']
                 process_objects(pobj)
 
         # 4. If no direct objects, include prepositional phrases as objects
         if not objects:
             for prep in prep_phrases:
-                prep_text = prep.lemma_
-                pobj = [child.lemma_ for child in prep.children if child.dep_ == 'pobj']
+                prep_text = prep.text
+                pobj = [child for child in prep.children if child.dep_ == 'pobj']
                 for obj in pobj:
                     main_part, prep_parts = get_compound_parts(obj)
                     full_object = prep_text + ' ' + main_part
                     objects.append((full_object, prep_parts))
 
     # 5. Objects in Noun Phrase Adverbial Modifiers (e.g., "He arrived yesterday")
-    npadvmod_objects = [child.lemma_ for child in verb.children if (child.dep_ == 'npadvmod') and (child.pos_ in {'PROPN', 'PRON', 'NOUN'})]
+    npadvmod_objects = [child for child in verb.children if (child.dep_ == 'npadvmod') and (child.pos_ in {'PROPN', 'PRON', 'NOUN'})]
     process_objects(npadvmod_objects)
 
     # 6. Handle clausal complements (ccomp)
     for child in verb.children:
         if child.dep_ == 'ccomp':
             # Include the subject of the ccomp as the object of the main verb
-            ccomp_subjs = [c.lemma_ for c in child.children if c.dep_ == 'nsubj']  # Exclude 'nsubjpass'
+            ccomp_subjs = [c for c in child.children if c.dep_ == 'nsubj']  # Exclude 'nsubjpass'
             for subj in ccomp_subjs:
                 subj_texts = extract_subjects(subj)
                 objects.extend(subj_texts)
@@ -664,19 +664,19 @@ def get_verb_objects(verb):
             objects.append((clause, []))  # No preps in clause
 
     # 7. Handle xcomp dependencies: include objects from xcomp verb
-    xcomp_children = [child.lemma_ for child in verb.children if child.dep_ == 'xcomp']
+    xcomp_children = [child for child in verb.children if child.dep_ == 'xcomp']
     for xcomp_child in xcomp_children:
         xcomp_objects = get_verb_objects(xcomp_child)
         if xcomp_objects:
             objects.extend(xcomp_objects)
         else:
             # If no objects found, try to get direct objects from the xcomp verb
-            xcomp_dobjs = [child.lemma_ for child in xcomp_child.children if child.dep_ in {'dobj', 'attr', 'oprd'}]
+            xcomp_dobjs = [child for child in xcomp_child.children if child.dep_ in {'dobj', 'attr', 'oprd'}]
             process_objects(xcomp_dobjs)
 
     # 8. Inherit objects from conjoined verbs if none found
     if not objects:
-        for child.lemma_ in verb.children:
+        for child in verb.children:
             if child.dep_ == 'conj' and child.pos_ == 'VERB':
                 conj_objects = get_verb_objects(child)
                 if conj_objects:
@@ -704,19 +704,19 @@ def extract_objects(object_token):
         main_part, prep_parts = get_compound_parts(object_token)
         # If the object is a 'pobj', include the preposition
         if object_token.dep_ == 'pobj':
-            preposition = object_token.head.lemma_
+            preposition = object_token.head.text
             main_part = preposition + ' ' + main_part
         objects.append((main_part, prep_parts))
 
     # Additionally, handle conjunct objects (e.g., "apples and oranges")
 
-    conjunct_objects = [conj.lemma_ for conj in object_token.conjuncts if conj.pos_ in {'NOUN', 'PROPN', 'PRON','ADJ'}]
+    conjunct_objects = [conj for conj in object_token.conjuncts if conj.pos_ in {'NOUN', 'PROPN', 'PRON','ADJ'}]
     for conj in conjunct_objects:
         # Extract compounds and the main noun for the conjunct
         main_part, prep_parts = get_compound_parts(conj)
         # If the conjunct object is a 'pobj', include the preposition
         if conj.dep_ == 'pobj':
-            preposition = conj.head.lemma_
+            preposition = conj.head.text
             main_part = preposition + ' ' + main_part
         objects.append((main_part, prep_parts))
 
