@@ -157,9 +157,8 @@ def svo_to_graph(df, subject_filter=None, object_filter=None):
     if subject_filter is not None:
         df = filter_subjects(df, subject_filter)
 
-    # Apply object filter with partial matching
     if object_filter is not None:
-        df = filter_subjects(df, object_filter)
+        df = filter_objects(df, object_filter)
 
     for index, row in df.iterrows():
         node1 = row['Node 1']

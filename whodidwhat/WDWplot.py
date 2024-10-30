@@ -7,15 +7,15 @@ from whodidwhat.nlp_utils import compute_valence
 from whodidwhat.analytics import add_node_with_type, svo_to_graph
 
 
-def plot_svo_graph(svo_list, subject_filter=None, object_filter=None):
+def plot_svo_graph(df, subject_filter=None, object_filter=None):
     """
     Plot a graph of SVO data. 
 
     Args:
-        svo_list (dataframe): a pandas DataFrame of SVO data.
+        df (dataframe): a pandas DataFrame of SVO data.
         subject_filter (str): A subject to filter the graph by.
     """
-    G = svo_to_graph(svo_list, subject_filter=subject_filter, object_filter=object_filter)
+    G = svo_to_graph(df, subject_filter=subject_filter, object_filter=object_filter)
     plot_graph(G)
 
 
