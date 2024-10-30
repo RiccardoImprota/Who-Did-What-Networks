@@ -1,4 +1,92 @@
 import networkx as nx
+from .nlp_utils import compute_valence
+from collections import defaultdict
+
+
+
+################################################################################################
+## Stuff to extract svos. 
+################################################################################################
+
+def export_hypergraphs(df):
+    """
+    Extracts hypergraphs from the DataFrame where Semantic-Syntactic is 0,
+    allowing duplicates across sentences but not within the same sentence.
+    
+    Args:
+        df (pandas.DataFrame): DataFrame containing the hypergraph data
+        
+    Returns:
+        list: A list of hypergraph strings, potentially with duplicates
+    """
+    # Assume we have a 'sentence_id' column in the DataFrame
+    # If not, you'll need to add logic to identify sentence boundaries
+
+    hypergraphs = []
+    sentence_hypergraphs = defaultdict(set)
+
+    # Filter rows where Semantic-Syntactic is 0
+    filtered_df = df[df['Semantic-Syntactic'] == 0]
+
+    # Group by sentence_id and collect hypergraphs
+    for svo_id, group in filtered_df.groupby('svo_id'):
+        for hypergraph in group['Hypergraph']:
+            if hypergraph != 'N/A' and hypergraph not in sentence_hypergraphs[svo_id]:
+                hypergraphs.append(hypergraph)
+                sentence_hypergraphs[svo_id].add(hypergraph)
+
+    return hypergraphs
+
+
+def export_subj(df):
+    """
+    Extracts a set of all unique subjects from the DataFrame.
+    Each element in the set is a tuple of (subject, valence).
+    """
+    # Filter rows where WDW is 'Who' (indicative of subjects)
+    df_subjects = df[df['WDW'] == 'Who']
+    # Get unique subjects from 'Node 1'
+    subjects = df_subjects['Node 1'].unique()
+    # Compute valence and create a set of tuples
+    subject_tuples = set()
+    for subj in subjects:
+        valence = compute_valence(subj)
+        subject_tuples.add((subj, valence))
+    return subject_tuples
+
+
+def export_obj(df):
+    """
+    Extracts a set of all unique objects from the DataFrame.
+    Each element in the set is a tuple of (object, valence).
+    """
+    # Filter rows where WDW2 is 'What' (indicative of objects)
+    df_objects = df[df['WDW2'] == 'What']
+    # Get unique objects from 'Node 2'
+    objects = df_objects['Node 2'].unique()
+    # Compute valence and create a set of tuples
+    object_tuples = set()
+    for obj in objects:
+        valence = compute_valence(obj)
+        object_tuples.add((obj, valence))
+    return object_tuples
+
+def export_verb(df):
+    """
+    Extracts a set of all unique verbs from the DataFrame.
+    Each element in the set is a tuple of (verb, valence).
+    """
+    # Verbs can be in 'Node 1' where WDW is 'Did' or in 'Node 2' where WDW2 is 'Did'
+    verbs_node1 = df[df['WDW'] == 'Did']['Node 1']
+    verbs_node2 = df[df['WDW2'] == 'Did']['Node 2']
+    # Combine and get unique verbs
+    verbs = pd.concat([verbs_node1, verbs_node2]).unique()
+    # Compute valence and create a set of tuples
+    verb_tuples = set()
+    for verb in verbs:
+        valence = compute_valence(verb)
+        verb_tuples.add((verb, valence))
+    return verb_tuples
 
 
 def add_node_with_type(G, node_id, label, node_type):
