@@ -20,9 +20,13 @@ def plot_svo_graph(svo_list, subject_filter=None, object_filter=None):
 
 
 def plot_graph(G):
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import FancyArrowPatch
+
     num_nodes = G.number_of_nodes()
     # Scale figure size based on number of nodes
-    figsize = (max(12, 8 + (num_nodes**0.5) * 1.4), max(8, 5+ (num_nodes**0.5) * 1.15))
+    figsize = (max(12, 8 + (num_nodes**0.5) * 1.4), max(8.5, 5.5+ (num_nodes**0.5) * 1.15))
     plt.figure(figsize=figsize)
 
     # Separate nodes by type
@@ -67,7 +71,7 @@ def plot_graph(G):
         y = base_y
         attempts = 0
         while attempts < 50 and any(abs(ex_y - y) < tolerance and abs(ex_x - x) < tolerance
-                                  for ex_x, ex_y in existing_positions.values()):
+                                    for ex_x, ex_y in existing_positions.values()):
             x = base_x + np.random.uniform(-x_range, x_range)
             y += spacing * 0.3  # Increased from 0.25 for more vertical spacing
             attempts += 1
@@ -78,7 +82,7 @@ def plot_graph(G):
     for s_nodes, v_nodes, o_nodes in sentences:
         # Increase vertical gap between subgraphs
         sentence_base_y += spacing * 1.2  # Increased multiplier for more space between subgraphs
-        
+
         # Add some random variation to prevent perfect alignment
         base_y = sentence_base_y + np.random.uniform(-0.2, 0.2)
 
@@ -117,6 +121,17 @@ def plot_graph(G):
     else:
         min_weight = max_weight = 1
 
+    # Function to draw curved edges
+    def draw_edge(u, v, rad, style, color, linewidth, alpha=0.3):
+        arrow = FancyArrowPatch(posA=pos[u], posB=pos[v],
+                                connectionstyle=f"arc3,rad={rad}",
+                                arrowstyle='-',
+                                linestyle=style,
+                                color=color,
+                                linewidth=linewidth,
+                                alpha=alpha)
+        plt.gca().add_patch(arrow)
+
     # Draw edges
     for (u, v, data) in G.edges(data=True):
         # Determine edge style based on node types
@@ -137,48 +152,83 @@ def plot_graph(G):
         if isinstance(relations, str):
             relations = set([relations])
 
-        # Determine whether to plot the edge based on the relations
-        if 'syntactic' in relations:
-            # Plot syntactic edge with weight-based linewidth
+        # Now handle the cases
+        if 'syntactic' in relations and 'synonym' in relations:
+            # Both relations exist
+
+            # Determine weight-based linewidth for syntactic edge
             weight = data.get('weight', 1)
             if min_weight == max_weight:
                 linewidth = 2  # Default linewidth if all weights are the same
             else:
                 # Map weight to linewidth between 1 and 3
-                linewidth = 1 + 2 * (weight - min_weight) / (max_weight - min_weight)
+                linewidth = 1.5 + 2 * (weight - min_weight) / (max_weight - min_weight)
 
             # Determine edge color based on valence
             if start_valence == 'positive' and end_valence == 'positive':
                 color = "#1f77b4"  # Blue
             elif start_valence == 'negative' and end_valence == 'negative':
                 color = "#d62728"  # Red
-            elif (start_valence == 'positive' and end_valence == 'negative') or (start_valence == 'negative' and end_valence == 'positive'):
+            elif (start_valence == 'positive' and end_valence == 'negative') or \
+                 (start_valence == 'negative' and end_valence == 'positive'):
                 color = "#9467bd"  # Purple
-            elif (start_valence == 'positive' and end_valence == 'neutral') or (end_valence == 'positive' and start_valence == 'neutral'):
+            elif (start_valence == 'positive' and end_valence == 'neutral') or \
+                 (end_valence == 'positive' and start_valence == 'neutral'):
                 color = "#b4cad6"  # Grayish blue
-            elif (start_valence == 'negative' and end_valence == 'neutral') or (end_valence == 'negative' and start_valence == 'neutral'):
+            elif (start_valence == 'negative' and end_valence == 'neutral') or \
+                 (end_valence == 'negative' and start_valence == 'neutral'):
                 color = "#dc9f9e"  # Grayish red
             else:
                 color = "#7f7f7f"  # Grey
 
-            plt.plot([pos[u][0], pos[v][0]],
-                     [pos[u][1], pos[v][1]],
-                     style,
-                     color=color,
-                     alpha=0.3,
-                     linewidth=linewidth)
+            # Draw syntactic edge with rad=0.1
+            draw_edge(u, v, rad=0.1, style=style, color=color, linewidth=linewidth, alpha=0.3)
+
+            # Then, draw synonym edge
+            linewidth = 2  # Semantic relations have fixed linewidth of 2
+            color = '#009E73'  # Green
+            # For synonym edge, use rad=0.2 (more curved)
+            draw_edge(u, v, rad=0.2, style=style, color=color, linewidth=linewidth, alpha=0.3)
+
+        elif 'syntactic' in relations:
+            # Only syntactic relation
+
+            # Determine weight-based linewidth
+            weight = data.get('weight', 1)
+            if min_weight == max_weight:
+                linewidth = 2  # Default linewidth if all weights are the same
+            else:
+                # Map weight to linewidth between 1 and 3
+                linewidth = 1.5 + 2 * (weight - min_weight) / (max_weight - min_weight)
+
+            # Determine edge color based on valence
+            if start_valence == 'positive' and end_valence == 'positive':
+                color = "#1f77b4"  # Blue
+            elif start_valence == 'negative' and end_valence == 'negative':
+                color = "#d62728"  # Red
+            elif (start_valence == 'positive' and end_valence == 'negative') or \
+                 (start_valence == 'negative' and end_valence == 'positive'):
+                color = "#9467bd"  # Purple
+            elif (start_valence == 'positive' and end_valence == 'neutral') or \
+                 (end_valence == 'positive' and start_valence == 'neutral'):
+                color = "#b4cad6"  # Grayish blue
+            elif (start_valence == 'negative' and end_valence == 'neutral') or \
+                 (end_valence == 'negative' and start_valence == 'neutral'):
+                color = "#dc9f9e"  # Grayish red
+            else:
+                color = "#7f7f7f"  # Grey
+
+            # Draw syntactic edge with rad=0.1
+            draw_edge(u, v, rad=0.1, style=style, color=color, linewidth=linewidth, alpha=0.4)
 
         elif 'synonym' in relations:
-            # Only plot semantic edge if there is no syntactic edge
+            # Only synonym relation
+
             linewidth = 2  # Semantic relations have fixed linewidth of 2
             color = '#009E73'  # Green
 
-            plt.plot([pos[u][0], pos[v][0]],
-                     [pos[u][1], pos[v][1]],
-                     style,
-                     color=color,
-                     alpha=0.3,
-                     linewidth=linewidth)
+            # Draw synonym edge with rad=0.15
+            draw_edge(u, v, rad=0.15, style=style, color=color, linewidth=linewidth, alpha=0.4)
 
         else:
             # No valid relation to plot
@@ -192,10 +242,10 @@ def plot_graph(G):
 
         bbox_props = dict(boxstyle="round,pad=0.2,rounding_size=0.2", fc=color, ec="none", alpha=0.8)
         plt.text(x, y, label, color='white',
-                horizontalalignment='center',
-                verticalalignment='center',
-                bbox=bbox_props,
-                fontsize=10)
+                 horizontalalignment='center',
+                 verticalalignment='center',
+                 bbox=bbox_props,
+                 fontsize=10)
 
     # Add column labels
     plt.text(-2, max(pos.values(), key=lambda x: x[1])[1] + 2.0, 'WHO', fontsize=20, ha='center')
@@ -205,7 +255,7 @@ def plot_graph(G):
     # Adjust the y-axis limits accordingly
     y_max = max(pos.values(), key=lambda x: x[1])[1]
     y_min = min(pos.values(), key=lambda x: x[1])[1]
-    plt.ylim(y_min - 0.5, y_max + 1.5)
+    plt.ylim(y_min - 3, y_max + 1.5)
     x_min = min(pos.values(), key=lambda x: x[0])[0]
     x_max = max(pos.values(), key=lambda x: x[0])[0]
     plt.xlim(x_min - 0.1, x_max + 0.1)
