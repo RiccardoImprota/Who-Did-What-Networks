@@ -14,6 +14,49 @@ def add_node_with_type(G, node_id, label, node_type):
     else:
         G.add_node(node_id, type=set([node_type]), label=label)
 
+def filter_subjects(df, subject_term):
+    """
+    Filters the DataFrame to keep rows where the 'svo_id' corresponds to entries
+    where 'Node 1' contains the subject term and 'WDW' indicates a subject ('Who').
+
+    Parameters:
+    - df: The input DataFrame.
+    - subject_term: The term to search for in subjects.
+
+    Returns:
+    - A filtered DataFrame containing only rows with matching 'svo_id's.
+    """
+    # Identify 'svo_id's where 'Node 1' contains the subject term and 'WDW' is 'Who'
+    subject_svo_ids = set(df[
+        (df['Node 1'].str.contains(subject_term, case=False, na=False)) &
+        (df['WDW'] == 'Who')
+    ]['svo_id'].unique())
+
+    # Filter the DataFrame to only include rows with these 'svo_id's
+    filtered_df = df[df['svo_id'].isin(subject_svo_ids)]
+    return filtered_df
+
+def filter_objects(df, object_term):
+    """
+    Filters the DataFrame to keep rows where the 'svo_id' corresponds to entries
+    where 'Node 2' contains the object term and 'WDW' indicates an object ('What').
+
+    Parameters:
+    - df: The input DataFrame.
+    - subject_term: The term to search for in subjects.
+
+    Returns:
+    - A filtered DataFrame containing only rows with matching 'svo_id's.
+    """
+    # Identify 'svo_id's where 'Node 12' contains the subject term and 'WDW' is 'What'
+    object_svo_ids = set(df[
+        (df['Node 2'].str.contains(object_term, case=False, na=False)) &
+        (df['WDW'] == 'What')
+    ]['svo_id'].unique())
+    # Filter the DataFrame to only include rows with these 'svo_id's
+    filtered_df = df[df['svo_id'].isin(object_svo_ids)]
+    return filtered_df
+
 
 
 def svo_to_graph(df, subject_filter=None, object_filter=None):
@@ -24,17 +67,11 @@ def svo_to_graph(df, subject_filter=None, object_filter=None):
     G = nx.Graph()
 
     if subject_filter is not None:
-        relevant_hypergraphs_subject = df.loc[
-            df['Node 1'].str.contains(subject_filter, case=False, na=False), 'Hypergraph'
-        ].unique()
-        df = df[df['Hypergraph'].isin(relevant_hypergraphs_subject)]
+        df = filter_subjects(df, subject_filter)
 
     # Apply object filter with partial matching
     if object_filter is not None:
-        relevant_hypergraphs_object = df.loc[
-            df['Node 2'].str.contains(object_filter, case=False, na=False), 'Hypergraph'
-        ].unique()
-        df = df[df['Hypergraph'].isin(relevant_hypergraphs_object)]
+        df = filter_subjects(df, object_filter)
 
     for index, row in df.iterrows():
         node1 = row['Node 1']
