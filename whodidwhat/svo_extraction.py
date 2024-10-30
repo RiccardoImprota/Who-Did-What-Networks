@@ -487,7 +487,7 @@ def get_compound_parts(token, lemmatize=True):
         if child.dep_ in {'acl', 'relcl'}:
             # Include the 'mark' (e.g., 'that')
             markers = [t for t in child.children if t.dep_ == 'mark']
-            parts.extend([t.lemma_ if lemmatize else t.text for t in markers])
+            parts.extend([t.lemma_ if lemmatize else t.lemma_ for t in markers])
 
             # Include the 'nsubj' of the 'acl' verb
             nsubjs = [t for t in child.children if t.dep_ == 'nsubj']
@@ -538,7 +538,7 @@ def get_compound_parts(token, lemmatize=True):
         # Process the preposition and its conjuncts
         prep_conjuncts = [prep] + list(prep.conjuncts)
         for p in prep_conjuncts:
-            prep_phrase = [p.text]  # Add the preposition
+            prep_phrase = [p.lemma_]  # Add the preposition
             pobj_list = [child for child in p.children if child.dep_ == 'pobj']
             for pobj in pobj_list:
                 # Process the pobj and its conjuncts
@@ -640,7 +640,7 @@ def get_verb_objects(verb):
         # 4. If no direct objects, include prepositional phrases as objects
         if not objects:
             for prep in prep_phrases:
-                prep_text = prep.text
+                prep_text = prep.lemma_
                 pobj = [child for child in prep.children if child.dep_ == 'pobj']
                 for obj in pobj:
                     main_part, prep_parts = get_compound_parts(obj)
@@ -704,7 +704,7 @@ def extract_objects(object_token):
         main_part, prep_parts = get_compound_parts(object_token)
         # If the object is a 'pobj', include the preposition
         if object_token.dep_ == 'pobj':
-            preposition = object_token.head.text
+            preposition = object_token.head.lemma_
             main_part = preposition + ' ' + main_part
         objects.append((main_part, prep_parts))
 
@@ -716,7 +716,7 @@ def extract_objects(object_token):
         main_part, prep_parts = get_compound_parts(conj)
         # If the conjunct object is a 'pobj', include the preposition
         if conj.dep_ == 'pobj':
-            preposition = conj.head.text
+            preposition = conj.head.lemma_
             main_part = preposition + ' ' + main_part
         objects.append((main_part, prep_parts))
 
