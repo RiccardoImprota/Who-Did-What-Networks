@@ -199,7 +199,7 @@ def plot_graph(G):
                 linewidth = 2  # Default linewidth if all weights are the same
             else:
                 # Map weight to linewidth between 1 and 3
-                linewidth = 1.5 + 2 * (weight - min_weight) / (max_weight - min_weight)
+                linewidth = 1.8 + 2 * (weight - min_weight) / (max_weight - min_weight)
 
             # Determine edge color based on valence
             if start_valence == 'positive' and end_valence == 'positive':
@@ -219,7 +219,7 @@ def plot_graph(G):
                 color = "#7f7f7f"  # Grey
 
             # Draw syntactic edge with rad=0.1
-            draw_edge(u, v, rad=0.1, style=style, color=color, linewidth=linewidth, alpha=0.4)
+            draw_edge(u, v, rad=0.1, style=style, color=color, linewidth=linewidth, alpha=0.6)
 
         elif 'synonym' in relations:
             # Only synonym relation
@@ -228,7 +228,7 @@ def plot_graph(G):
             color = '#009E73'  # Green
 
             # Draw synonym edge with rad=0.15
-            draw_edge(u, v, rad=0.15, style=style, color=color, linewidth=linewidth, alpha=0.4)
+            draw_edge(u, v, rad=0.15, style=style, color=color, linewidth=linewidth, alpha=0.6)
 
         else:
             # No valid relation to plot
