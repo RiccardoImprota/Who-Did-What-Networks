@@ -219,7 +219,7 @@ def plot_graph(G):
                 color = "#7f7f7f"  # Grey
 
             # Draw syntactic edge with rad=0.1
-            draw_edge(u, v, rad=0.1, style=style, color=color, linewidth=linewidth, alpha=0.6)
+            draw_edge(u, v, rad=0.08, style=style, color=color, linewidth=linewidth, alpha=0.55)
 
         elif 'synonym' in relations:
             # Only synonym relation
@@ -228,7 +228,7 @@ def plot_graph(G):
             color = '#009E73'  # Green
 
             # Draw synonym edge with rad=0.15
-            draw_edge(u, v, rad=0.15, style=style, color=color, linewidth=linewidth, alpha=0.6)
+            draw_edge(u, v, rad=0.12, style=style, color=color, linewidth=linewidth, alpha=0.6)
 
         else:
             # No valid relation to plot
