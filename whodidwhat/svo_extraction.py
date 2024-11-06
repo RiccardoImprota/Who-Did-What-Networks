@@ -22,7 +22,6 @@ def extract_svos_from_text(text, coref_solver='fastcoref'):
 ## Extract svos code. 
 ################################################################################################
 
-
 def are_synonyms(word1, word2):
     """
     Check if two words are synonyms using WordNet.
@@ -210,7 +209,7 @@ def get_verb_phrase(verb):
     #adverbs_after = [child.lemma_ for child in verb.rights if child.dep_ in {'advmod', 'amod', 'npadvmod'} and\
     #                  child.pos_ not in {'SCONJ', 'CCONJ', 'PART', 'DET'} and child.lemma_ not in VAGUE_ADVMODS]
     #parts.extend(adverbs_after)
-    
+
     # Get adverbial modifiers after the verb
     for child in verb.rights:
         if child.dep_ in {'advmod', 'amod', 'npadvmod'} and\
@@ -222,7 +221,7 @@ def get_verb_phrase(verb):
     # Get auxiliaries and negations after the verb
     aux = [child.lemma_ for child in verb.rights if child.dep_ in {'aux','auxpass','neg'} and child.lemma_ not in _VAGUE_AUX]
     parts.extend(aux)
-    
+
 
     for child in verb.children:
         if child.dep_ in {'xcomp'}:
@@ -259,14 +258,20 @@ def get_verb_subjects(verb):
         nsubjs = [child for child in verb.children if child.dep_ == 'nsubj']
         if nsubjs:
             for subj in nsubjs:
-                subjects.extend(extract_subjects(subj))
+                if subj.lower_ in {'who', 'which', 'that', 'whom', 'whose'}:
+                    # Use the modified noun as the subject
+                    modified_noun = verb.head
+                    main_part, prep_parts = get_compound_parts(modified_noun, lemmatize=True)
+                    subjects.append((main_part, prep_parts))
+                else:
+                    subjects.extend(extract_subjects(subj))
         else:
-            # Otherwise, the subject is the noun the verb is modifying
+            # Use the modified noun as the subject
             modified_noun = verb.head
             main_part, prep_parts = get_compound_parts(modified_noun, lemmatize=True)
             subjects.append((main_part, prep_parts))
         return subjects
-    
+
     # Check for agents (e.g., "by John")
     agents = [child for child in verb.children if child.dep_ == 'agent']
     if agents:
@@ -334,7 +339,7 @@ def get_verb_subjects(verb):
         if verb.morph.get("Mood") == ["Imp"] or verb.tag_ == "VB":
             subjects.append(('you', []))
     # Remove duplicates while preserving order
-    
+
     return subjects
 
 
@@ -379,59 +384,30 @@ def get_compound_parts(token, lemmatize=True):
         lemmatize (bool, optional): Whether to lemmatize the extracted parts.
 
     Returns:
-        str: A string containing the compound phrase with all relevant modifiers.
+        Tuple[str, List[str]]: A tuple containing the compound phrase and a list of prepositional phrases.
     """
     parts = []
     prep_parts = []
 
     # Extract determiners (excluding 'the', 'a', 'an')
-    dets = [child for child in token.children if (child.dep_ == 'det') and child.lemma_ not in {'the','a','an'}]
+    dets = [child for child in token.children if (child.dep_ == 'det') and child.lemma_ not in {'the', 'a', 'an'}]
     if lemmatize:
         parts.extend([child.lemma_ for child in dets])
     else:
         parts.extend([child.text for child in dets])
 
-
-    def get_conj_ADJ(token):
-        for conj in child.conjuncts:
-            if conj.pos_ == 'ADJ' and conj.dep_ == 'conj':
-                modifiers.append(conj)
-
-    # Handle 'acl' dependencies separately
-    for child in token.children:
-        if child.dep_ in {'acl', 'relcl'}:
-            # Include the 'mark' (e.g., 'that')
-            markers = [t for t in child.children if t.dep_ == 'mark']
-            parts.extend([t.lemma_ if lemmatize else t.lemma_ for t in markers])
-
-            # Include the 'nsubj' of the 'acl' verb
-            nsubjs = [t for t in child.children if t.dep_ == 'nsubj']
-            for nsubj in nsubjs:
-                nsubj_main, nsubj_preps = get_compound_parts(nsubj, lemmatize=lemmatize)
-                parts.append(nsubj_main)
-                prep_parts.extend(nsubj_preps)
-
-    # Extract all modifiers
+    # Extract modifiers
     modifiers = []
     for child in token.children:
-        if (child.dep_ in {'compound', 'amod', 'nmod'} or \
-            (child.dep_ in {'advmod', 'npadvmod'} and token.pos_ in {'VERB','AUX'}))and \
-            child.pos_ not in {'SCONJ', 'CCONJ', 'PART'}:
+        if (child.dep_ in {'compound', 'amod', 'nmod', 'poss', 'case'} or
+            (child.dep_ in {'advmod', 'npadvmod'} and token.pos_ in {'VERB', 'AUX'})) and \
+                child.pos_ not in {'SCONJ', 'CCONJ', 'PART'}:
             modifiers.append(child)
-            get_conj_ADJ(child)
-            for grandchild in child.children:
-                if grandchild.dep_ in {'compound', 'nmod', 'advmod', 'amod','npadvmod'}:
-                    modifiers.append(grandchild)
-                    get_conj_ADJ(grandchild)
-                for grandgrandchild in grandchild.children:
-                    if grandgrandchild.dep_ in {'compound', 'nmod', 'advmod', 'amod','npadvmod'}:
-                        modifiers.append(grandgrandchild)
-                        get_conj_ADJ(grandgrandchild)
-                    #Let's just stop here to avoid too large compounds.
+            # Include modifiers of modifiers
+            modifiers.extend([gc for gc in child.children if gc.dep_ in {'compound', 'amod', 'nmod', 'poss', 'case'}])
 
-
-    # Sort all modifiers based on their position in the text
-    modifiers = sorted(modifiers, key=lambda x: x.i)
+    # Sort modifiers based on their position in the text
+    modifiers = sorted(set(modifiers), key=lambda x: x.i)
 
     # Add all modifier text
     for modifier in modifiers:
@@ -446,25 +422,26 @@ def get_compound_parts(token, lemmatize=True):
     else:
         parts.append(token.text)
 
-    
     # Handle prepositional phrases separately
     preps = [child for child in token.children if child.dep_ == 'prep']
     for prep in preps:
         # Process the preposition and its conjuncts
         prep_conjuncts = [prep] + list(prep.conjuncts)
         for p in prep_conjuncts:
-            prep_phrase = [p.lemma_]  # Add the preposition
             pobj_list = [child for child in p.children if child.dep_ == 'pobj']
             for pobj in pobj_list:
                 # Process the pobj and its conjuncts
                 pobj_conjuncts = [pobj] + list(pobj.conjuncts)
                 for pobj_item in pobj_conjuncts:
-                    pobj_main, pobj_preps = get_compound_parts(pobj_item,lemmatize=lemmatize)
+                    # For each pobj_conjunct, create a separate prep_phrase
+                    prep_phrase = [p.lemma_]  # Start with the preposition
+                    pobj_main, pobj_preps = get_compound_parts(pobj_item, lemmatize=lemmatize)
                     prep_phrase.append(pobj_main)
                     # Handle nested prepositional phrases
                     for nested_prep in pobj_preps:
                         prep_phrase.append(nested_prep)
-            prep_parts.append(' '.join(prep_phrase))
+                    # Join and append to prep_parts
+                    prep_parts.append(' '.join(prep_phrase))
 
     main_part = ' '.join(parts)
 
@@ -540,7 +517,7 @@ def get_verb_objects(verb):
         process_objects(direct_objects)
 
         # 2. Indirect Objects (e.g., "give me the book")
-        indirect_objects = [child for child in verb.children if child.dep_ == 'iobj']
+        indirect_objects = [child for child in verb.children if child.dep_ in {'iobj', 'dative'}]
         process_objects(indirect_objects)
 
         # 3. Objects in Prepositional Phrases (e.g., "look at the sky")
@@ -569,14 +546,11 @@ def get_verb_objects(verb):
     # 6. Handle clausal complements (ccomp)
     for child in verb.children:
         if child.dep_ == 'ccomp':
-            # Include the subject of the ccomp as the object of the main verb
-            ccomp_subjs = [c for c in child.children if c.dep_ == 'nsubj']  # Exclude 'nsubjpass'
-            for subj in ccomp_subjs:
-                subj_texts = extract_subjects(subj)
-                objects.extend(subj_texts)
-            # Optionally, include the entire clause as an object
-            clause = extract_clause(child)
-            objects.append((clause, []))  # No preps in clause
+            # Include the objects of the ccomp verb
+            ccomp_objects = get_verb_objects(child)
+            objects.extend(ccomp_objects)
+
+
 
     # 7. Handle xcomp dependencies: include objects from xcomp verb
     xcomp_children = [child for child in verb.children if child.dep_ == 'xcomp']
@@ -605,7 +579,7 @@ def get_verb_objects(verb):
 def extract_objects(object_token):
     """
     Extract the object and its compound components, including prepositional phrases.
-    
+
     Args:
         object_token (spacy.tokens.Token): The object token.
     Returns:
@@ -636,3 +610,4 @@ def extract_objects(object_token):
         objects.append((main_part, prep_parts))
 
     return objects
+
