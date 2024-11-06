@@ -1,5 +1,8 @@
 # Who-did-What-Networks
 
+<p align="center">
+  <img src="who-did-what logo.jpg" alt="WDW" width="300"/>
+</p>
 
 
 <p align="center">
