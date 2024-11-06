@@ -29,6 +29,8 @@ Part-of-speech tagging is determined by an AI reading each sentence in a text (s
 - **Valence Analysis**: Determines the sentiment (positive, negative, neutral) of words using Vader.
 - **Graph Visualization**: Visualizes SVO relationships using NetworkX and Matplotlib.
 - **Hypergraphs extraction**: handles the exporting of the who-did-what relationships as a pandas dataframe.
+- **Semantic enrichment**: Synonyms are included in the SVO extraction and in the visualization.
+
 
 
 ---

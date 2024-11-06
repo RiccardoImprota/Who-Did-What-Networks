@@ -228,7 +228,7 @@ def plot_graph(G):
             color = '#009E73'  # Green
 
             # Draw synonym edge with rad=0.15
-            draw_edge(u, v, rad=0.12, style=style, color=color, linewidth=linewidth, alpha=0.6)
+            draw_edge(u, v, rad=0.14, style=style, color=color, linewidth=linewidth, alpha=0.6)
 
         else:
             # No valid relation to plot
