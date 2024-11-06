@@ -62,9 +62,9 @@ def compute_valence(text):
 
     vs = analyzer.polarity_scores(text)
 
-    if vs['compound'] > 0.65:
+    if vs['compound'] > 0.05:
         return 'positive'
-    elif vs['compound'] < -0.65:
+    elif vs['compound'] < -0.05:
         return 'negative'
     else:
         return 'neutral'
