@@ -25,23 +25,24 @@ def extract_svos_from_text(text, coref_solver='fastcoref'):
 
 def get_synsets(phrase):
     """
-    get synsets for the phrase as a whole
+    Get noun synsets for the phrase as a whole.
     """
-    synsets = wn.synsets(phrase.replace(' ', '_'))
+    # Attempt to get synsets for the whole phrase as a noun
+    synsets = wn.synsets(phrase.replace(' ', '_'), pos='n')
     if synsets:
         return synsets
     else:
-        # If not found, split into words and get synsets for each word
+        # Split the phrase into words and get noun synsets for each noun word
         words = phrase.split()
         synsets = []
         for word in words:
-            synsets.extend(wn.synsets(word))
+            # Get noun synsets for each word
+            synsets.extend(wn.synsets(word, pos='n'))
         return synsets
-
 
 def are_synonymous(word1, word2):
     """
-    Check if two words are synonyms using WordNet.
+    Check if two words or phrases are synonyms considering only nouns.
     """
     synsets1 = get_synsets(word1)
     synsets2 = get_synsets(word2)
@@ -50,10 +51,11 @@ def are_synonymous(word1, word2):
             # Check if synsets are the same
             if syn1 == syn2:
                 return True
-            # Check if they share any lemma names
+            # Check if they share any lemma names (nouns only)
             if set(syn1.lemma_names()).intersection(set(syn2.lemma_names())):
                 return True
     return False
+
 
 
 
