@@ -4,7 +4,7 @@
   <img src="who-did-what logo.png" alt="WDW" width="300"/>
 </p>
 
-A Python library that implements a novel framework to measure bias through its actors, actions and consequences.
+A Python library that implements a novel framework to measure bias through its actors, actions and consequences in English.
 
 --- 
 ## Description
@@ -14,6 +14,8 @@ Who-Did-What cognitive networks are a novel framework to measure bias through it
 - verbs/consequences (WHAT)
 
 Part-of-speech tagging is determined by an AI reading each sentence in a text (spaCy). Inter-layer connections are established with a rule-based approach applied on the syntactic parsing of an AI (spaCy). Intra-layer connections are semantic and established only if two words are synonyms (e.g. father and dad), highlighted in green. Like in textual forma mentis networks (Stella, PeerJ Comp. Sci, 2020), individual concepts are labelled as “positive” (cyan), “negative” (red) and “neutral” (gray) according to Vader Sentiment Analysis. Inter-layer paths indicate “who did what” - i.e. which actions and which consequences were portrayed by specific agents in texts. Whereas tools such through EmoAtlas can give general results about the overall context of biased perceptions, Who-Did-What networks can complement TFMNs by providing a focus on actors, actions and consequences.
+
+This framework only works for the English language.
 
 
 <p align="center">
@@ -49,6 +51,7 @@ pip install git+https://github.com/RiccardoImprota/Who-did-What-Networks
 
 ---
 ## Usage and guides
+
 For detailed documentation and examples, please refer to the folder 'Docs & Guides' or check out the Google Colab demo.
 
 
@@ -73,7 +76,7 @@ display(svo)
 wdw.plot_svo_graph(svo)
 ```
 <p align="left">
-  <img src="who-did-what logo.png" alt="WDW" width="400"/>
+  <img src="WDWMarkRose.jpg" alt="WDW" width="400"/>
 </p>
 
 ### Starting Guide

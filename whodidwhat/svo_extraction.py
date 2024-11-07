@@ -22,31 +22,39 @@ def extract_svos_from_text(text, coref_solver='fastcoref'):
 ## Extract svos code. 
 ################################################################################################
 
-def are_synonyms(phrase1, phrase2):
+
+def get_synsets(phrase):
     """
-    Check if two phrases are synonyms using WordNet.
-    Extract nouns from the phrases and compare their synsets.
+    get synsets for the phrase as a whole
     """
-    # Use spaCy to parse the phrases
-    doc1 = spacynlp(phrase1)
-    doc2 = spacynlp(phrase2)
-    
-    nouns1 = [token.lemma_ for token in doc1 if token.pos_ in {'NOUN', 'PROPN'}]
-    nouns2 = [token.lemma_ for token in doc2 if token.pos_ in {'NOUN', 'PROPN'}]
-    
-    for noun1 in nouns1:
-        synsets1 = wn.synsets(noun1)
-        for noun2 in nouns2:
-            synsets2 = wn.synsets(noun2)
-            for syn1 in synsets1:
-                for syn2 in synsets2:
-                    # Check if synsets are the same
-                    if syn1 == syn2:
-                        return True
-                    # Check if they share any lemma names
-                    if set(syn1.lemma_names()).intersection(set(syn2.lemma_names())):
-                        return True
+    synsets = wn.synsets(phrase.replace(' ', '_'))
+    if synsets:
+        return synsets
+    else:
+        # If not found, split into words and get synsets for each word
+        words = phrase.split()
+        synsets = []
+        for word in words:
+            synsets.extend(wn.synsets(word))
+        return synsets
+
+
+def are_synonymous(word1, word2):
+    """
+    Check if two words are synonyms using WordNet.
+    """
+    synsets1 = get_synsets(word1)
+    synsets2 = get_synsets(word2)
+    for syn1 in synsets1:
+        for syn2 in synsets2:
+            # Check if synsets are the same
+            if syn1 == syn2:
+                return True
+            # Check if they share any lemma names
+            if set(syn1.lemma_names()).intersection(set(syn2.lemma_names())):
+                return True
     return False
+
 
 
 def extract_svos(doc):
