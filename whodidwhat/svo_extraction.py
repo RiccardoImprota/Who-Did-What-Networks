@@ -153,7 +153,7 @@ def extract_svos(doc):
     # For each pair of subjects, check if they are synonyms
     subject_pairs = combinations(subject_nodes, 2)
     for subj1, subj2 in subject_pairs:
-        if are_synonyms(subj1, subj2):
+        if are_synonymous(subj1, subj2):
             # Add semantic relation
             data_rows.append({
                 'Node 1': subj1,
@@ -168,7 +168,7 @@ def extract_svos(doc):
     # Similarly for objects
     object_pairs = combinations(object_nodes, 2)
     for obj1, obj2 in object_pairs:
-        if are_synonyms(obj1, obj2):
+        if are_synonymous(obj1, obj2):
             data_rows.append({
                 'Node 1': obj1,
                 'WDW': 'What',
