@@ -19,7 +19,7 @@ This framework only works for the English language.
 
 
 <p align="center">
-  <img src="WDW Sentence.jpg" alt="WDW" width="600"/>
+  <img src="WDW Sentence.jpg"/>
 </p>
 
 
@@ -76,7 +76,7 @@ display(svo)
 wdw.plot_svo_graph(svo)
 ```
 <p align="center">
-  <img src="WDWMarkRose.jpg" alt="WDW" width="600"/>
+  <img src="WDWMarkRose.jpg"/>
 </p>
 
 ### Starting Guide
@@ -88,10 +88,7 @@ You can access the Starting Guide here: [Starting Guide](https://github.com/Ricc
 
 ### Google Colab Demo
 
-You can access the Google Colab demo here: [Who-Did-What Demo](https://colab.research.google.com/drive/your_colab_link)
-
-**Contents of the Colab Notebook:**
-
+You can access the Google Colab demo here: [Who-Did-What Demo](https://colab.research.google.com/drive/1mT9wi6fKXCm3o7765hRhNKyRe--6hBRG?usp=sharing).
 
 
 ---
