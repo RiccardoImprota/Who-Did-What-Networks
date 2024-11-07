@@ -182,13 +182,13 @@ def plot_graph(G):
                 color = "#7f7f7f"  # Grey
 
             # Draw syntactic edge with rad=0.1
-            draw_edge(u, v, rad=0.08, style=style, color=color, linewidth=linewidth, alpha=0.3)
+            draw_edge(u, v, rad=0.08, style=style, color=color, linewidth=linewidth, alpha=0.55)
 
             # Then, draw synonym edge
             linewidth = 2  # Semantic relations have fixed linewidth of 2
             color = '#009E73'  # Green
             # For synonym edge, use rad=0.2 (more curved)
-            draw_edge(u, v, rad=0.25, style=style, color=color, linewidth=linewidth, alpha=0.3)
+            draw_edge(u, v, rad=0.25, style=style, color=color, linewidth=linewidth, alpha=0.6)
 
         elif 'syntactic' in relations:
             # Only syntactic relation
