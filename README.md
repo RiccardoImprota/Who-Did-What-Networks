@@ -75,8 +75,8 @@ display(svo)
 ```
 wdw.plot_svo_graph(svo)
 ```
-<p align="left">
-  <img src="WDWMarkRose.jpg" alt="WDW" width="400"/>
+<p align="center">
+  <img src="WDWMarkRose.jpg" alt="WDW" width="600"/>
 </p>
 
 ### Starting Guide

@@ -211,7 +211,7 @@ def plot_graph(G):
                 color = "#9467bd"  # Purple
             elif (start_valence == 'positive' and end_valence == 'neutral') or \
                  (end_valence == 'positive' and start_valence == 'neutral'):
-                color = "#b4cad6"  # Grayish blue
+                color = "#a2b9d8"  # Grayish blue
             elif (start_valence == 'negative' and end_valence == 'neutral') or \
                  (end_valence == 'negative' and start_valence == 'neutral'):
                 color = "#dc9f9e"  # Grayish red
