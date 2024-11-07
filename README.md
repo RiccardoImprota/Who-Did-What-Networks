@@ -6,7 +6,7 @@
 
 A Python library that implements a novel framework to measure bias through its actors, actions and consequences in English.
 
---- 
+
 ## Description
 Who-Did-What cognitive networks are a novel framework to measure bias through its actors, actions and consequences. These semantic/syntactic multilayer networks are composed of 3 layers:
 - subjects/actors (WHO)
@@ -76,7 +76,7 @@ display(svo)
 wdw.plot_svo_graph(svo)
 ```
 <p align="center">
-  <img src="WDWMarkRose.jpg"/>
+  <img src="WDWMarkRose.jpg" width="700"/>
 </p>
 
 ### Starting Guide
