@@ -26,7 +26,7 @@ def plot_graph(G):
 
     num_nodes = G.number_of_nodes()
     # Scale figure size based on number of nodes
-    figsize = (max(12, 8 + (num_nodes**0.5) * 1.4), max(8.5, 5.5+ (num_nodes**0.5) * 1.15))
+    figsize = (max(12, 8 + (num_nodes**0.5) * 1.4), max(7.5, 4.5+ (num_nodes**0.5) * 1.25))
     plt.figure(figsize=figsize)
 
     # Separate nodes by type
@@ -188,7 +188,7 @@ def plot_graph(G):
             linewidth = 2  # Semantic relations have fixed linewidth of 2
             color = '#009E73'  # Green
             # For synonym edge, use rad=0.2 (more curved)
-            draw_edge(u, v, rad=0.25, style=style, color=color, linewidth=linewidth, alpha=0.45)
+            draw_edge(u, v, rad=0.25, style=style, color=color, linewidth=linewidth, alpha=0.35)
 
         elif 'syntactic' in relations:
             # Only syntactic relation
@@ -228,7 +228,7 @@ def plot_graph(G):
             color = '#009E73'  # Green
 
             # Draw synonym edge with rad=0.15
-            draw_edge(u, v, rad=0.14, style=style, color=color, linewidth=linewidth, alpha=0.45)
+            draw_edge(u, v, rad=0.14, style=style, color=color, linewidth=linewidth, alpha=0.35)
 
         else:
             # No valid relation to plot
