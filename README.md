@@ -49,7 +49,7 @@ pip install git+https://github.com/RiccardoImprota/Who-did-What-Networks
 
 ---
 ## Usage and guides
-For detailed documentation and examples, please refer to the documentation notebook or check out the Google Colab demo.
+For detailed documentation and examples, please refer to the folder 'Docs & Guides' or check out the Google Colab demo.
 
 
 ```python
@@ -72,12 +72,20 @@ display(svo)
 ```
 wdw.plot_svo_graph(svo)
 ```
+<p align="left">
+  <img src="who-did-what logo.png" alt="WDW" width="400"/>
+</p>
 
+### Starting Guide
+
+You can access the Starting Guide here: [Starting Guide](https://github.com/RiccardoImprota/Who-did-What-Networks/blob/main/Docs%20%26%20Guides/Starting%20Guide.ipynb)
+
+**Contents of the Starting Guide:**
 
 
 ### Google Colab Demo
 
-You can access the Google Colab demo here: [SVO Extractor Demo](https://colab.research.google.com/drive/your_colab_link)
+You can access the Google Colab demo here: [Who-Did-What Demo](https://colab.research.google.com/drive/your_colab_link)
 
 **Contents of the Colab Notebook:**
 
@@ -85,10 +93,10 @@ You can access the Google Colab demo here: [SVO Extractor Demo](https://colab.re
 
 ---
 ## References:
-- Stella, M. (2020). Text-mining forma mentis networks reconstruct public perception of the STEM gender gap in social media. PeerJ Computer Science, 6, e295.
-- Hutto, C., & Gilbert, E. (2014, May). Vader: A parsimonious rule-based model for sentiment analysis of social media text. In Proceedings of the international AAAI conference on web and social media (Vol. 8, No. 1, pp. 216-225).
+- *Stella, M. (2020). Text-mining forma mentis networks reconstruct public perception of the STEM gender gap in social media. PeerJ Computer Science, 6, e295.*
+- *Hutto, C., & Gilbert, E. (2014, May). Vader: A parsimonious rule-based model for sentiment analysis of social media text. In Proceedings of the international AAAI conference on web and social media (Vol. 8, No. 1, pp. 216-225).*
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the BSD 3-Clause License.
 
