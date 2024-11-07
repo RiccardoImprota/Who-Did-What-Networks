@@ -49,6 +49,38 @@ pip install git+https://github.com/RiccardoImprota/Who-did-What-Networks
 
 ---
 ## Usage and guides
+For detailed documentation and examples, please refer to the documentation notebook or check out the Google Colab demo.
+
+
+```python
+import whodidwhat as wdw
+
+text = """Mark and Rose go to the park."""
+
+svo = wdw.extract_svos_from_text(text)
+display(svo)
+```
+
+| Node 1   | WDW   | Node 2   | WDW2   | Hypergraph                                                |   Semantic-Syntactic |   svo_id |
+|:---------|:------|:---------|:-------|:----------------------------------------------------------|---------------------:|---------:|
+| Mark     | Who   | go       | Did    | [[('Mark', []), ('Rose', [])], ['go'], [('to park', [])]] |                    0 |        0 |
+| Rose     | Who   | go       | Did    | [[('Mark', []), ('Rose', [])], ['go'], [('to park', [])]] |                    0 |        0 |
+| go       | Did   | to park  | What   | [[('Mark', []), ('Rose', [])], ['go'], [('to park', [])]] |                    0 |        0 |
+| Mark     | Who   | Rose     | Who    | [[('Mark', []), ('Rose', [])], ['go'], [('to park', [])]] |                    0 |        0 |
+
+
+```
+wdw.plot_svo_graph(svo)
+```
+
+
+
+### Google Colab Demo
+
+You can access the Google Colab demo here: [SVO Extractor Demo](https://colab.research.google.com/drive/your_colab_link)
+
+**Contents of the Colab Notebook:**
+
 
 
 ---
@@ -56,4 +88,7 @@ pip install git+https://github.com/RiccardoImprota/Who-did-What-Networks
 - Stella, M. (2020). Text-mining forma mentis networks reconstruct public perception of the STEM gender gap in social media. PeerJ Computer Science, 6, e295.
 - Hutto, C., & Gilbert, E. (2014, May). Vader: A parsimonious rule-based model for sentiment analysis of social media text. In Proceedings of the international AAAI conference on web and social media (Vol. 8, No. 1, pp. 216-225).
 
+## License
+
+This project is licensed under the MIT License.
 
