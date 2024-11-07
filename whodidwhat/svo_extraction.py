@@ -43,7 +43,19 @@ def get_synsets(phrase):
 def are_synonymous(word1, word2):
     """
     Check if two words or phrases are synonyms considering only nouns.
+    Enforces the rule: if a word contains two nouns, return False as synonyms.
     """
+    # Check if either word contains two or more nouns
+    for phrase in [word1, word2]:
+        words = phrase.split()
+        noun_count = 0
+        for word in words:
+            # Check if the word has noun synsets
+            if wn.synsets(word, pos='n'):
+                noun_count += 1
+        if noun_count >= 2:
+            return False
+
     synsets1 = get_synsets(word1)
     synsets2 = get_synsets(word2)
     for syn1 in synsets1:
@@ -55,7 +67,6 @@ def are_synonymous(word1, word2):
             if set(syn1.lemma_names()).intersection(set(syn2.lemma_names())):
                 return True
     return False
-
 
 
 
