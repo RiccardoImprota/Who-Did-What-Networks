@@ -40,7 +40,7 @@ This framework only works for the English language.
 
 Currently, the package can be installed through this Github repository. Note that this requires [Git](https://git-scm.com/) to be installed.
 
-```python
+```bash
 pip install git+https://github.com/RiccardoImprota/Who-did-What-Networks
 ```
 
