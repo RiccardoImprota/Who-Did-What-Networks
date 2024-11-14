@@ -83,7 +83,7 @@ wdw.plot_svo_graph(svo)
 
 You can access the Starting Guide here: [Starting Guide](https://github.com/RiccardoImprota/Who-did-What-Networks/blob/main/Docs%20%26%20Guides/Starting%20Guide.ipynb)
 
-**Contents of the Starting Guide:**
+The starting guides features a more complete description of the package and an usage guide.
 
 
 ### Google Colab Demo
@@ -92,6 +92,10 @@ You can access the Google Colab demo here: [Who-Did-What Demo](https://colab.res
 
 
 ---
+## Citation
+
+TO DO
+
 ## References:
 - *Stella, M. (2020). Text-mining forma mentis networks reconstruct public perception of the STEM gender gap in social media. PeerJ Computer Science, 6, e295.*
 - *Hutto, C., & Gilbert, E. (2014, May). Vader: A parsimonious rule-based model for sentiment analysis of social media text. In Proceedings of the international AAAI conference on web and social media (Vol. 8, No. 1, pp. 216-225).*
