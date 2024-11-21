@@ -28,8 +28,8 @@ def merge_svo_dataframes(df_list):
         df_copy['svo_id'] = pd.to_numeric(df_copy['svo_id'], errors='coerce')
         # Convert to nullable integer type to allow NaNs
         df_copy['svo_id'] = df_copy['svo_id'].astype('Int64')
-        # Increment IDs, only for non-null values
-        df_copy['svo_id'] = df_copy['svo_id'] + svo_id_offset
+        # Increment IDs only for non-null values
+        df_copy.loc[df_copy['svo_id'].notna(), 'svo_id'] += svo_id_offset
         merged_df = pd.concat([merged_df, df_copy], ignore_index=True)
         # Update offset for the next DataFrame, ignoring NaNs
         max_id = df_copy['svo_id'].max()
