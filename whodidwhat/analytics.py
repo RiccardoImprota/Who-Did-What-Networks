@@ -24,13 +24,14 @@ def merge_svo_dataframes(df_list):
     svo_id_offset = 0
     for df in df_list:
         df_copy = df.copy()
-        # Ensure svo_id is numeric
+        # Ensure svo_id is numeric where possible but leave NaN untouched
         df_copy['svo_id'] = pd.to_numeric(df_copy['svo_id'], errors='coerce')
-        df_copy['svo_id'] = df_copy['svo_id'].fillna(0).astype(int)  # Default to 0 if conversion fails
-        # Increment IDs
-        df_copy['svo_id'] += svo_id_offset
+        # Apply offset only to non-NaN values
+        df_copy['svo_id'] = df_copy['svo_id'].apply(lambda x: x + svo_id_offset if pd.notna(x) else x)
         merged_df = pd.concat([merged_df, df_copy], ignore_index=True)
-        svo_id_offset = df_copy['svo_id'].max() + 1
+        # Update offset for the next DataFrame, ignoring NaN
+        if pd.notna(df_copy['svo_id']).any():
+            svo_id_offset = df_copy['svo_id'].max() + 1
     return merged_df
 
 
