@@ -24,10 +24,15 @@ def merge_svo_dataframes(df_list):
     svo_id_offset = 0
     for df in df_list:
         df_copy = df.copy()
+        # Ensure svo_id is numeric
+        df_copy['svo_id'] = pd.to_numeric(df_copy['svo_id'], errors='coerce')
+        df_copy['svo_id'] = df_copy['svo_id'].fillna(0).astype(int)  # Default to 0 if conversion fails
+        # Increment IDs
         df_copy['svo_id'] += svo_id_offset
         merged_df = pd.concat([merged_df, df_copy], ignore_index=True)
         svo_id_offset = df_copy['svo_id'].max() + 1
     return merged_df
+
 
 def export_hypergraphs(df):
     """
