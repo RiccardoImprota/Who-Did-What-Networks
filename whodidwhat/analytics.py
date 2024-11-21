@@ -9,6 +9,26 @@ import pandas as pd
 ## Stuff to extract svos. 
 ################################################################################################
 
+def merge_svo_dataframes(df_list):
+    """
+    Merges a list of DataFrames containing SVO data into a single DataFrame.
+    The 'svo_id' column is updated to ensure unique values across the merged DataFrame.
+
+    Args:
+        df_list (list): A list of DataFrames containing SVO data
+    
+    Returns:
+        pandas.DataFrame: A single DataFrame containing all SVO data
+    """
+    merged_df = pd.DataFrame()
+    svo_id_offset = 0
+    for df in df_list:
+        df_copy = df.copy()
+        df_copy['svo_id'] += svo_id_offset
+        merged_df = pd.concat([merged_df, df_copy], ignore_index=True)
+        svo_id_offset = df_copy['svo_id'].max() + 1
+    return merged_df
+
 def export_hypergraphs(df):
     """
     Extracts hypergraphs from the DataFrame where Semantic-Syntactic is 0,
