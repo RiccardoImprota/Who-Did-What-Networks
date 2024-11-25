@@ -399,4 +399,4 @@ def wdw_degree_centrality_overview(df):
 
         print(f"Degree centrality for {svo}")
         display(wdw_weighted_degree_centrality(df, WDW, WDW2).head(20))
-        print("############################################")
+        print("############################################ \n")
