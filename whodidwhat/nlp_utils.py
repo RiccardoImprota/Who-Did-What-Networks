@@ -4,10 +4,8 @@ from whodidwhat.resources import _valences
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 
-
 _nlp_spacy = None
 _nlp_stanza = None
-
 
 
 def spacynlp(text):
@@ -18,14 +16,15 @@ def spacynlp(text):
 
     return nlp(text)
 
+
 def ensure_wordnet_downloaded():
     import nltk
     from nltk.data import find
-    try:
-        find('corpora/wordnet')
-    except LookupError:
-        nltk.download('wordnet')
 
+    try:
+        find("corpora/wordnet")
+    except LookupError:
+        nltk.download("wordnet")
 
 
 def get_spacy_nlp():
@@ -34,18 +33,21 @@ def get_spacy_nlp():
         ensure_wordnet_downloaded()
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            _nlp_spacy = spacy.load('en_core_web_trf')
+            _nlp_spacy = spacy.load("en_core_web_trf")
     return _nlp_spacy
+
 
 def get_stanza_nlp():
     import stanza
+
     global _nlp_stanza
     if _nlp_stanza is None:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            _nlp_stanza = stanza.Pipeline(lang='en', processors='tokenize,coref', verbose=False)
+            _nlp_stanza = stanza.Pipeline(
+                lang="en", processors="tokenize,coref", verbose=False
+            )
     return _nlp_stanza
-
 
 
 def compute_valence(text):
@@ -62,9 +64,9 @@ def compute_valence(text):
 
     vs = analyzer.polarity_scores(text)
 
-    if vs['compound'] > 0.05:
-        return 'positive'
-    elif vs['compound'] < -0.05:
-        return 'negative'
+    if vs["compound"] > 0.05:
+        return "positive"
+    elif vs["compound"] < -0.05:
+        return "negative"
     else:
-        return 'neutral'
+        return "neutral"
