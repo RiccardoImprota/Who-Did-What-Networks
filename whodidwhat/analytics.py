@@ -353,14 +353,6 @@ def wdw_weighted_degree_centrality(df, WDW, WDW2=None):
 
     filtered_df = filter_svo_dataframe_by_wdw(df, WDW, WDW2)
 
-    # Filter the DataFrame to include only subjects, verbs, or objects
-    if WDW == "Who":
-        filtered_df = filtered_df[filtered_df["node"].str.endswith("_s")].copy()
-    elif WDW == "Did":
-        filtered_df = filtered_df[filtered_df["node"].str.endswith("_v")].copy()
-    else:
-        filtered_df = filtered_df[filtered_df["node"].str.endswith("_o")].copy()
-
     G = svo_to_graph(filtered_df)
 
     # Compute weighted degrees (node strengths)
@@ -375,12 +367,20 @@ def wdw_weighted_degree_centrality(df, WDW, WDW2=None):
         list(weighted_degree_centrality.items()), columns=["node", "degree_centrality"]
     )
 
+    # Filter the DataFrame to include only subjects, verbs, or objects
+    if WDW == "Who":
+        df_filtered = df[df["node"].str.endswith("_s")].copy()
+    elif WDW == "Did":
+        df_filtered = df[df["node"].str.endswith("_v")].copy()
+    else:
+        df_filtered = df[df["node"].str.endswith("_o")].copy()
     # Remove the last character(s) from the node names
-    df["node"] = df["node"].str.replace("(_s|_v|_o)$", "", regex=True)
+    df_filtered["node"] = df_filtered["node"].str.replace("(_s|_v|_o)$", "", regex=True)
+
     # Sort the DataFrame
-    df_sorted = df.sort_values(by="degree_centrality", ascending=False).reset_index(
-        drop=True
-    )
+    df_sorted = df_filtered.sort_values(
+        by="degree_centrality", ascending=False
+    ).reset_index(drop=True)
     return df_sorted
 
 
