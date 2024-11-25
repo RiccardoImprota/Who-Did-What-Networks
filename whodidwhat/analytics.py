@@ -5,7 +5,7 @@ import pandas as pd
 
 
 ################################################################################################
-## Stuff to extract svos.
+## SVO Operations.
 ################################################################################################
 
 
@@ -15,7 +15,7 @@ def filter_svo_dataframe_by_wdw(df, WDW, WDW2=None):
 
     This function specifically considers 'WDW' to be one of "Who", "Did", or "What". Synonyms of these terms are not taken into account.
 
-    If `WDW2` is set to None and the value of `WDW` is 'Did', we consider all edges of 'Did'.
+    If `WDW2` is set to None , we consider all edges of WDW.
 
 
 
@@ -26,8 +26,8 @@ def filter_svo_dataframe_by_wdw(df, WDW, WDW2=None):
         - "Did"
         - "What"
     WDW2: The value to match in the 'WDW2' column.
-      If `WDW2` is set to None, it defaults to the value of `WDW`.
-      If `WDW2` is set to None and the value of `WDW` is 'Did', we consider all edges of 'Did'.
+        - If `WDW2` is set to None , we consider all edges of WDW.
+
 
 
     Returns:
@@ -44,9 +44,7 @@ def filter_svo_dataframe_by_wdw(df, WDW, WDW2=None):
             f"WDW2 must be one of {valid_wdw_values} or None. Provided: '{WDW2}'"
         )
 
-    if WDW2 == None and WDW != "Did":
-        WDW2 = WDW
-    elif WDW2 == None and WDW == "Did":
+    if WDW2 == None:
         filtered_df = df[
             (df["WDW"] == WDW) | (df["WDW2"] == WDW) & (df["Semantic-Syntactic"] == 0)
         ]
@@ -65,7 +63,7 @@ def merge_svo_dataframes(df_list):
 
     Args:
         df_list (list): A list of DataFrames containing SVO data
-    
+
     Returns:
         pandas.DataFrame: A single DataFrame containing all SVO data
     """
@@ -74,18 +72,17 @@ def merge_svo_dataframes(df_list):
     for df in df_list:
         df_copy = df.copy()
         # Ensure svo_id is numeric, keeping NaNs
-        df_copy['svo_id'] = pd.to_numeric(df_copy['svo_id'], errors='coerce')
+        df_copy["svo_id"] = pd.to_numeric(df_copy["svo_id"], errors="coerce")
         # Convert to nullable integer type to allow NaNs
-        df_copy['svo_id'] = df_copy['svo_id'].astype('Int64')
+        df_copy["svo_id"] = df_copy["svo_id"].astype("Int64")
         # Increment IDs only for non-null values
-        df_copy.loc[df_copy['svo_id'].notna(), 'svo_id'] += svo_id_offset
+        df_copy.loc[df_copy["svo_id"].notna(), "svo_id"] += svo_id_offset
         merged_df = pd.concat([merged_df, df_copy], ignore_index=True)
         # Update offset for the next DataFrame, ignoring NaNs
-        max_id = df_copy['svo_id'].max()
+        max_id = df_copy["svo_id"].max()
         if pd.notna(max_id):
             svo_id_offset = max_id + 1
     return merged_df
-
 
 
 def export_hypergraphs(df):
@@ -301,3 +298,76 @@ def svo_to_graph(df, subject_filter=None, object_filter=None):
             )
 
     return G
+
+
+################################################################################################
+## Centrality measures.
+################################################################################################
+
+
+def wdw_weighted_degree_centrality(df, WDW, WDW2=None):
+    """
+    Filters the SVO (Subject-Verb-Object) DataFrame to include only rows where 'WDW' and 'WDW2' match the provided arguments.
+
+    This function specifically considers 'WDW' to be one of "Who", "Did", or "What". Synonyms of these terms are not taken into account.
+
+    If `WDW2` is set to None , we consider all edges of WDW.
+
+
+
+    Parameters:
+    df (pd.DataFrame): The SVO DataFrame to filter.
+    WDW: The value to match in the 'WDW' column. Accepted values are:
+        - "Who"
+        - "Did"
+        - "What"
+    WDW2: The value to match in the 'WDW2' column.
+        - If `WDW2` is set to None , we consider all edges of WDW.
+
+
+
+    Returns:
+    pd.DataFrame: The filtered DataFrame.
+    """
+
+    # Validate input values
+    valid_wdw_values = {"Who", "Did", "What"}
+    if WDW not in valid_wdw_values:
+        raise ValueError(f"WDW must be one of {valid_wdw_values}. Provided: '{WDW}'")
+
+    if WDW2 is not None and WDW2 != "None" and WDW2 not in valid_wdw_values:
+        raise ValueError(
+            f"WDW2 must be one of {valid_wdw_values} or None. Provided: '{WDW2}'"
+        )
+
+    filtered_df = filter_svo_dataframe_by_wdw(df, WDW, WDW2)
+
+    G = svo_to_graph(filtered_df)
+
+    # Compute weighted degrees (node strengths)
+    node_strength = dict(G.degree(weight="weight"))
+    # Normalize by total strength to get centrality
+    total_strength = sum(node_strength.values())
+    weighted_degree_centrality = {
+        node: strength / total_strength for node, strength in node_strength.items()
+    }
+    # Create a DataFrame with 'node' as a column
+    df = pd.DataFrame(
+        list(weighted_degree_centrality.items()), columns=["node", "degree_centrality"]
+    )
+
+    # Filter the DataFrame to include only subjects, verbs, or objects
+    if WDW == "Who":
+        df_filtered = df[df["node"].str.endswith("_s")].copy()
+    elif WDW == "Did":
+        df_filtered = df[df["node"].str.endswith("_v")].copy()
+    else:
+        df_filtered = df[df["node"].str.endswith("_o")].copy()
+
+    # Remove the last character(s) from the node names
+    df_filtered["node"] = df_filtered["node"].str.replace("(_s|_v|_o)$", "", regex=True)
+    # Sort the DataFrame
+    df_sorted = df_filtered.sort_values(
+        by="degree_centrality", ascending=False
+    ).reset_index(drop=True)
+    return df_sorted
