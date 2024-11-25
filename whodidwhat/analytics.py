@@ -370,9 +370,9 @@ def wdw_weighted_degree_centrality(df, WDW, WDW2=None):
     # Filter the DataFrame to include only subjects, verbs, or objects
     if WDW == "Who":
         df_filtered = df[df["node"].str.endswith("_s")].copy()
-    elif WDW == "Did":
+    elif WDW == "Did" and WDW2 == None:
         df_filtered = df[df["node"].str.endswith("_v")].copy()
-    else:
+    elif WDW2 == "What":
         df_filtered = df[df["node"].str.endswith("_o")].copy()
     # Remove the last character(s) from the node names
     df_filtered["node"] = df_filtered["node"].str.replace("(_s|_v|_o)$", "", regex=True)
