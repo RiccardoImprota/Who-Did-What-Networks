@@ -58,6 +58,36 @@ def filter_svo_dataframe_by_wdw(df, WDW, WDW2=None):
     return filtered_df
 
 
+def merge_svo_dataframes(df_list):
+    """
+    Merges a list of DataFrames containing SVO data into a single DataFrame.
+    The 'svo_id' column is updated to ensure unique values across the merged DataFrame.
+
+    Args:
+        df_list (list): A list of DataFrames containing SVO data
+    
+    Returns:
+        pandas.DataFrame: A single DataFrame containing all SVO data
+    """
+    merged_df = pd.DataFrame()
+    svo_id_offset = 0
+    for df in df_list:
+        df_copy = df.copy()
+        # Ensure svo_id is numeric, keeping NaNs
+        df_copy['svo_id'] = pd.to_numeric(df_copy['svo_id'], errors='coerce')
+        # Convert to nullable integer type to allow NaNs
+        df_copy['svo_id'] = df_copy['svo_id'].astype('Int64')
+        # Increment IDs only for non-null values
+        df_copy.loc[df_copy['svo_id'].notna(), 'svo_id'] += svo_id_offset
+        merged_df = pd.concat([merged_df, df_copy], ignore_index=True)
+        # Update offset for the next DataFrame, ignoring NaNs
+        max_id = df_copy['svo_id'].max()
+        if pd.notna(max_id):
+            svo_id_offset = max_id + 1
+    return merged_df
+
+
+
 def export_hypergraphs(df):
     """
     Extracts hypergraphs from the DataFrame where Semantic-Syntactic is 0,
