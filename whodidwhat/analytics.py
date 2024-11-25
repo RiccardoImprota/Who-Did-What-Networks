@@ -34,25 +34,46 @@ def filter_svo_dataframe_by_wdw(df, WDW, WDW2=None):
     pd.DataFrame: The filtered DataFrame.
     """
 
-    # Validate input values
-    valid_wdw_values = {"Who", "Did", "What"}
-    if WDW not in valid_wdw_values:
+    # Define valid WDW values in lowercase for case-insensitive comparison
+    valid_wdw_values = {"who", "did", "what"}
+
+    # Normalize inputs to lowercase
+    if not isinstance(WDW, str):
+        raise ValueError(f"WDW must be a string. Provided type: {type(WDW)}")
+    WDW_normalized = WDW.lower()
+
+    if WDW_normalized not in valid_wdw_values:
         raise ValueError(f"WDW must be one of {valid_wdw_values}. Provided: '{WDW}'")
 
-    if WDW2 is not None and WDW2 != "None" and WDW2 not in valid_wdw_values:
-        raise ValueError(
-            f"WDW2 must be one of {valid_wdw_values} or None. Provided: '{WDW2}'"
-        )
+    if WDW2 is not None:
+        if not isinstance(WDW2, str):
+            raise ValueError(
+                f"WDW2 must be a string or None. Provided type: {type(WDW2)}"
+            )
+        WDW2_normalized = WDW2.lower()
+        if WDW2_normalized not in valid_wdw_values:
+            raise ValueError(
+                f"WDW2 must be one of {valid_wdw_values} or None. Provided: '{WDW2}'"
+            )
+    else:
+        WDW2_normalized = None
 
-    if WDW2 == None:
+    # Apply filtering
+    if WDW2_normalized is None:
         filtered_df = df[
-            (df["WDW"] == WDW) | (df["WDW2"] == WDW) & (df["Semantic-Syntactic"] == 0)
+            (
+                (df["WDW"].str.lower() == WDW_normalized)
+                | (df["WDW2"].str.lower() == WDW_normalized)
+            )
+            & (df["Semantic-Syntactic"] == 0)
         ]
-        return filtered_df
+    else:
+        filtered_df = df[
+            (df["WDW"].str.lower() == WDW_normalized)
+            & (df["WDW2"].str.lower() == WDW2_normalized)
+            & (df["Semantic-Syntactic"] == 0)
+        ]
 
-    filtered_df = df[
-        (df["WDW"] == WDW) & (df["WDW2"] == WDW2) & (df["Semantic-Syntactic"] == 0)
-    ]
     return filtered_df
 
 
