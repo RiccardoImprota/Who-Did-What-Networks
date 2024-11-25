@@ -389,11 +389,11 @@ def wdw_degree_centrality_overview(df):
     Compute the degree centrality for each of the SVO components (Subject, Verb, Object) using the weighted degree centrality measure.
     """
 
-    combinations = {
+    combinations = [
         ["Subject", "Who", "Did"],
         ["Verb", "Did", None],
         ["Object", "Did", "What"],
-    }
+    ]
 
     for svo, WDW, WDW2 in combinations:
 
