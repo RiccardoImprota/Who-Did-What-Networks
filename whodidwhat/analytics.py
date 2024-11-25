@@ -351,16 +351,6 @@ def wdw_weighted_degree_centrality(df, WDW, WDW2=None):
     pd.DataFrame: The filtered DataFrame.
     """
 
-    # Validate input values
-    valid_wdw_values = {"Who", "Did", "What"}
-    if WDW not in valid_wdw_values:
-        raise ValueError(f"WDW must be one of {valid_wdw_values}. Provided: '{WDW}'")
-
-    if WDW2 is not None and WDW2 != "None" and WDW2 not in valid_wdw_values:
-        raise ValueError(
-            f"WDW2 must be one of {valid_wdw_values} or None. Provided: '{WDW2}'"
-        )
-
     filtered_df = filter_svo_dataframe_by_wdw(df, WDW, WDW2)
 
     # Filter the DataFrame to include only subjects, verbs, or objects
