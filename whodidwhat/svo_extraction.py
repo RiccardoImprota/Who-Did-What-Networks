@@ -504,13 +504,13 @@ def get_compound_parts(token, lemmatize=True):
     # Add all modifier text
     for modifier in modifiers:
         if lemmatize:
-            parts.append(modifier.lemma_)
+            parts.append(modifier.lemma_.lower())
         else:
             parts.append(modifier.text)
 
     # Add the main token's text
     if lemmatize:
-        parts.append(token.lemma_)
+        parts.append(token.lemma_.lower())
     else:
         parts.append(token.text)
 
