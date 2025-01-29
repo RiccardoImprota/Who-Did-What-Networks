@@ -46,7 +46,7 @@ pip install git+https://github.com/RiccardoImprota/Who-did-What-Networks
 
 ### Prerequisites
 
-- Python 3.7 or higher
+- Python >=3.7,<3.10
 - pip package manager
 
 ---
