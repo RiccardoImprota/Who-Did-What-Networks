@@ -13,14 +13,13 @@ with open(path.join(here, "requirements.txt"), encoding="utf-8") as f:
     requirements = f.read().splitlines()
 
 setup(
-    name='WhoDidWhat',
-    url='https://github.com/RiccardoImprota/Who-did-What-Networks',
-    author='Riccardo Improta',
-    author_email='riccardo.imp@gmail.com',
+    name="WhoDidWhat",
+    url="https://github.com/RiccardoImprota/Who-did-What-Networks",
+    author="Riccardo Improta",
+    author_email="riccardo.imp@gmail.com",
     packages=find_packages(),
     install_requires=requirements,
-    version='0.1',
-    license='BSD-3-Clause license',
-    description='An example of a python package from pre-existing code',
-        
+    version="0.2",
+    license="BSD-3-Clause license",
+    description="An example of a python package from pre-existing code",
 )
