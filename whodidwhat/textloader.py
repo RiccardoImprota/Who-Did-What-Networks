@@ -123,10 +123,7 @@ def fastcoref_solve_coreferences(text_to_resolve):
 
     model = PatchedFCoref(nlp=get_spacy_nlp(), device="cpu")
 
-    preds = model.predict(
-        texts=text_to_resolve,
-        show_progress=False,
-    )
+    preds = model.predict(texts=text_to_resolve)
 
     clusters_positions = preds.get_clusters(as_strings=False)
     clusters_strings = preds.get_clusters()
