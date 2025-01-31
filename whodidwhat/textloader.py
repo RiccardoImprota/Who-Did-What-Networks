@@ -94,10 +94,7 @@ def fastcoref_solve_coreferences(text_to_resolve):
     """
     from fastcoref import FCoref as OriginalFCoref
     from transformers import AutoModel
-    import os
-    import contextlib
     import logging
-    import datasets
 
     import functools
     import re
@@ -107,8 +104,6 @@ def fastcoref_solve_coreferences(text_to_resolve):
     # Suppress transformers/fastcoref logging
     logging.getLogger("transformers").setLevel(logging.ERROR)
     logging.getLogger("fastcoref").setLevel(logging.ERROR)
-    # Disable datasets progress bars globally
-    datasets.disable_progress_bar()
 
     class PatchedFCoref(OriginalFCoref):
         def __init__(self, *args, **kwargs):
@@ -130,6 +125,7 @@ def fastcoref_solve_coreferences(text_to_resolve):
 
     preds = model.predict(
         texts=text_to_resolve,
+        show_progress=False,
     )
 
     clusters_positions = preds.get_clusters(as_strings=False)
