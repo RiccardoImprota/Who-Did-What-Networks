@@ -94,8 +94,15 @@ def fastcoref_solve_coreferences(text_to_resolve):
     """
     from fastcoref import FCoref as OriginalFCoref
     from transformers import AutoModel
+    import logging
     import functools
     import re
+    from tqdm import tqdm
+    from functools import partial
+
+    # Suppress transformers/fastcoref logging
+    logging.getLogger("transformers").setLevel(logging.ERROR)
+    logging.getLogger("fastcoref").setLevel(logging.ERROR)
 
     class PatchedFCoref(OriginalFCoref):
         def __init__(self, *args, **kwargs):
@@ -115,9 +122,15 @@ def fastcoref_solve_coreferences(text_to_resolve):
 
     model = PatchedFCoref(nlp=get_spacy_nlp(), device="cpu")
 
+    # Disable tqdm progress bars
+    tqdm.__init__ = partial(tqdm.__init__, disable=True)
+
     preds = model.predict(
         texts=text_to_resolve,
     )
+
+    # Restore tqdm if needed elsewhere
+    del tqdm.__init__
 
     clusters_positions = preds.get_clusters(as_strings=False)
     clusters_strings = preds.get_clusters()
