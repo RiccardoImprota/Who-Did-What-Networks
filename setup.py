@@ -19,7 +19,7 @@ setup(
     author_email="riccardo.imp@gmail.com",
     packages=find_packages(),
     install_requires=requirements,
-    version="0.2",
+    version="0.2.5",
     license="BSD-3-Clause license",
     description="An example of a python package from pre-existing code",
 )
