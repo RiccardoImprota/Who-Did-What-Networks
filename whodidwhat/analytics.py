@@ -326,7 +326,14 @@ def svo_to_graph(df, subject_filter=None, object_filter=None):
 ################################################################################################
 
 
-def wdw_weighted_degree_centrality(df, WDW, WDW2=None):
+def wdw_weighted_degree_centrality(
+    df,
+    WDW,
+    WDW2=None,
+    remove_same_type=False,
+    remove_what_who=False,
+    remove_node_type=None,
+):
     """
     Filters the SVO (Subject-Verb-Object) DataFrame to include only rows where 'WDW' and 'WDW2' match the provided arguments.
 
@@ -345,13 +352,24 @@ def wdw_weighted_degree_centrality(df, WDW, WDW2=None):
     WDW2: The value to match in the 'WDW2' column.
         - If `WDW2` is set to None , we consider all edges of WDW.
 
-
+    remove_same_type (bool): If True, removes edges between nodes of the same type (what-what, who-who).
+    remove_node_type (str): If set to "What" or "Who", removes all rows containing that node type.
 
     Returns:
     pd.DataFrame: The filtered DataFrame.
     """
 
+    # First filter the DataFrame based on node_type parameter
+    if remove_node_type in ["What", "Who"]:
+        df = df[
+            ~df["WDW"].isin([remove_node_type]) & ~df["WDW2"].isin([remove_node_type])
+        ]
+
     filtered_df = filter_svo_dataframe_by_wdw(df, WDW, WDW2)
+
+    if remove_same_type:
+        # Keep only rows where WDW and WDW2 are different
+        filtered_df = filtered_df[filtered_df["WDW"] != filtered_df["WDW2"]]
 
     G = svo_to_graph(filtered_df)
 
