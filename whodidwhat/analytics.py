@@ -331,7 +331,6 @@ def wdw_weighted_degree_centrality(
     WDW,
     WDW2=None,
     remove_same_type=False,
-    remove_what_who=False,
     remove_node_type=None,
 ):
     """
