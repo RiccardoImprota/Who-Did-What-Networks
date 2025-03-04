@@ -19,7 +19,7 @@
 
 A Python library that implements a novel framework to measure bias through its actors, actions and consequences in English.
 
-
+<!--
 ## Description
 Who-Did-What cognitive networks are a novel framework to measure bias through its actors, actions and consequences. These semantic/syntactic multilayer networks are composed of 3 layers:
 - subjects/actors (WHO)
@@ -29,6 +29,7 @@ Who-Did-What cognitive networks are a novel framework to measure bias through it
 Part-of-speech tagging is determined by an AI reading each sentence in a text (spaCy). Inter-layer connections are established with a rule-based approach applied on the syntactic parsing of an AI (spaCy). Intra-layer connections are semantic and established only if two words are synonyms (e.g. father and dad), highlighted in green. Like in textual forma mentis networks (Stella, PeerJ Comp. Sci, 2020), individual concepts are labelled as “positive” (cyan), “negative” (red) and “neutral” (gray) according to Vader Sentiment Analysis. Inter-layer paths indicate “who did what” - i.e. which actions and which consequences were portrayed by specific agents in texts. Whereas tools such through EmoAtlas can give general results about the overall context of biased perceptions, Who-Did-What networks can complement TFMNs by providing a focus on actors, actions and consequences.
 
 This framework only works for the English language.
+
 
 
 <p align="center">
@@ -113,6 +114,7 @@ TO DO
 - *Stella, M. (2020). Text-mining forma mentis networks reconstruct public perception of the STEM gender gap in social media. PeerJ Computer Science, 6, e295.*
 - *Hutto, C., & Gilbert, E. (2014, May). Vader: A parsimonious rule-based model for sentiment analysis of social media text. In Proceedings of the international AAAI conference on web and social media (Vol. 8, No. 1, pp. 216-225).*
 
+-->
 ## License
 
 This project is licensed under the BSD 3-Clause License.
