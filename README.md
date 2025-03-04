@@ -7,7 +7,7 @@
 
 <p align="center">
   <a href="https://github.com/MassimoStel/Who-Did-What_Networks">
-    <img src="https://img.shields.io/badge/Development-Active%20Fork%3A%20Who-Did-What_Networks-red.svg" alt="Active Development">
+    <img src="https://img.shields.io/badge/Development-Active%20Fork%3A%20Who_Did_What_Networks-red.svg" alt="Active Development">
   </a>
 </p>
 
