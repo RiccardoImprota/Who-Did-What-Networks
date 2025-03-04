@@ -5,6 +5,12 @@
   <a href="https://github.com/MassimoStel/Who-Did-What_Networks"><strong>Who-Did-What_Networks</strong></a>.
 </p>
 
+<p align="center">
+  <a href="https://github.com/MassimoStel/Who-Did-What_Networks">
+    <img src="https://img.shields.io/badge/Development-Active%20Fork%3A%20Who-Did-What_Networks-red.svg" alt="Active Development">
+  </a>
+</p>
+
 # Who-did-What Networks
 
 <p align="center">
