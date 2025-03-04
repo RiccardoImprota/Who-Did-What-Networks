@@ -1,3 +1,10 @@
+<h1 align="center">🚨 Active Development Notice 🚨</h1>
+
+<p align="center">
+  This repository is no longer actively maintained. Please check out our fork for the latest updates:
+  <a href="https://github.com/MassimoStel/Who-Did-What_Networks"><strong>Who-Did-What_Networks</strong></a>.
+</p>
+
 # Who-did-What Networks
 
 <p align="center">
